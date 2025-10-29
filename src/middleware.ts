@@ -15,9 +15,9 @@ export default auth((req) => {
   }
 
   // 未認証ならloginへ
-  if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url))
-  }
+  // if (!isLoggedIn) {
+  //   return NextResponse.redirect(new URL("/login", req.url))
+  // }
 
   return NextResponse.next()
 })
