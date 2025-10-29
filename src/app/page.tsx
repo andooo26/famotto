@@ -1,28 +1,20 @@
 import { auth, signOut } from "@/auth"
- 
+import Link from 'next/link'
+import Image from "next/image";
 export default async function HomePage() {
   const session = await auth()
-  
+
   return (
     <div>
-      <h1>Famotto へようこそ！</h1>
-      
-      {session?.user && (
-        <div>
-          <p>ログイン成功</p>
-        </div>
-      )}
-      
-      <form
-        action={async () => {
-          "use server"
-          await signOut()
-        }}
-      >
-        <button type="submit">
-          ログアウト
-        </button>
-      </form>
+      <div>
+        <h1>Famotto</h1>
+      </div>
+      <div className="diary">
+      </div>
+      <div>
+
+      </div>
     </div>
+
   )
 } 
