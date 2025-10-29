@@ -20,7 +20,6 @@ export default function HomePage() {
   if (loading) {
     return (
       <div>
-        <div>loading...</div>
       </div>
     );
   }
