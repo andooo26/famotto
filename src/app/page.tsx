@@ -1,28 +1,65 @@
-import { auth, signOut } from "@/auth"
- 
-export default async function HomePage() {
-  const session = await auth()
-  
+'use client';
+
+import { useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { signOut } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
+
+export default function HomePage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('error:', error);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div>
+      </div>
+    );
+  }
+
+  if (!loading && !user) {
+    return (
+      <div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1>Famotto へようこそ！</h1>
-      
-      {session?.user && (
+      <div>
         <div>
-          <p>ログイン成功</p>
+          <div>
+            <h1>Famotto</h1>
+            
+            {user ? (
+              <div>
+                <div>
+                  <p>ログイン成功</p>
+                  <p>ユーザー: {user.displayName || user.email}</p>
+                </div>
+                
+                <button onClick={handleSignOut}>
+                  ログアウト
+                </button>
+              </div>
+            ) : null}
+          </div>
         </div>
-      )}
-      
-      <form
-        action={async () => {
-          "use server"
-          await signOut()
-        }}
-      >
-        <button type="submit">
-          ログアウト
-        </button>
-      </form>
+      </div>
     </div>
-  )
+  );
 } 
