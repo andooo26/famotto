@@ -26,11 +26,14 @@ export default function LoginPage() {
   return (
     <div
       style={{
-        minHeight: '100vh',
+        width: '100vw',
+        height: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1rem',
+        background: 'linear-gradient(135deg, #ffecd3 0%, #ffe0a1 100%)',
+        margin: 0,
+        padding: 0
       }}
     >
       <div
@@ -44,7 +47,7 @@ export default function LoginPage() {
           maxWidth: 420,
         }}
       >
-        <h1 style={{ fontSize: '3rem', textShadow: '2px 2px 4px rgba(0,0,0,0.3)', margin: 0 }}>
+        <h1 style={{ fontSize: '4rem', textShadow: '2px 2px 4px rgba(0,0,0,0.3)', margin: 0 }}>
           Famotto
         </h1>
 
