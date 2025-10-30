@@ -24,24 +24,54 @@ export default function LoginPage() {
   };
 
   return (
-    <div>
-      <div>
-        <div>
-          <h2>
-            Famottoにログイン
-          </h2>
-        </div>
-        <div>
-          {error && (
-            <div>
-              {error}
-            </div>
-          )}
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '1rem',
+      }}
+    >
+      <div
+        style={{
+          textAlign: 'center',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '1.5rem',
+          width: '100%',
+          maxWidth: 420,
+        }}
+      >
+        <h1 style={{ fontSize: '3rem', textShadow: '2px 2px 4px rgba(0,0,0,0.3)', margin: 0 }}>
+          Famotto
+        </h1>
+
+        {error && <div>{error}</div>}
+
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
           <button
             onClick={handleGoogleSignIn}
             disabled={loading}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: 0,
+              cursor: loading ? 'wait' : 'pointer',
+            }}
           >
-            {loading ? 'ログイン中...' : 'Google でサインイン'}
+            <img
+              src="/signupwithgoogle.png"
+              alt="Google でサインイン"
+              style={{
+                width: 200,
+                height: 200,
+                opacity: loading ? 0.5 : 1,
+                objectFit: 'contain',
+                display: 'block',
+              }}
+            />
           </button>
         </div>
       </div>
