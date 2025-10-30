@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 export const metadata: Metadata = {
   title: "Famotto",
-  description: "Famotto application",
+  description: "Famotto",
 }
 
 export default function RootLayout({
@@ -13,7 +14,9 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
