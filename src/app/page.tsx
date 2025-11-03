@@ -9,11 +9,8 @@ import Link from 'next/link';
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  // ✅ useState は最初に
   const [entries, setEntries] = useState([]);
 
-  // ✅ useEffect も return の前にすべて置く
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
@@ -42,18 +39,35 @@ export default function HomePage() {
     }
   };
 
-  // ✅ 条件分岐は return の中で行う
+
   if (loading) return <div>Loading...</div>;
   if (!user) return <div>ログインが必要です。</div>;
 
+  // 共有ボタン処理 https://developer.mozilla.org/ja/docs/Web/API/Navigator/share
+  const handleShare = () => {
+    if (navigator.share) {
+      navigator.share({
+        title: 'Famotto',
+        text: 'Famotto',
+        url: window.location.href,//現在のページURL
+      });
+    } else {
+      alert('このブラウザは共有機能に対応していません');
+    }
+  };
+
+
   return (
     <div>
-      <div>
-        <h1>Famotto</h1>
-      </div>
+      {/* ヘッダー */}
+      <header className="header">
+        <div className="profile-icon"></div>
+        <span>Famotto</span>
+      </header>
 
-      <div className="diary">
-        {/* 日記APIから取得した日記一覧をここに表示 */}
+      {/* 日記部分 */}
+      <main className="diary-card">
+        {/* 日記APIから取得した日記一覧をここに表示
         {entries.length > 0 ? (
           entries.map((entry) => (
             <div key={entry.id} style={{ borderBottom: "1px solid #ccc", marginBottom: "16px" }}>
@@ -69,16 +83,36 @@ export default function HomePage() {
               )}
             </div>
           ))
-        ) : (
-          <p>日記がまだありません。</p>
-        )}
-      </div>
+        ) : ( */}
+        <p>日記がまだありません。</p>
+        {/* )} */}
 
-      <div>
-        <Link href="/1">日記追加</Link>
-        <Link href="/2">今日のお題</Link>
+        {/* 表示確認用 */}
+        <div className="card">
+          <div className="card-header">
+            <img src="/emoji.png" alt="にこちゃん" className="icon" />
+            <span className="username">たろう</span>
+          </div>
+
+          <div className="card-content">
+            <p>ここにテキストや画像・動画が入ります。</p>
+          </div>
+
+          <div className="card-footer">
+            <a href="tel:09012345678" className="btn-icon">📞</a>
+            <button onClick={handleShare} className="btn-icon">🔗</button>
+          </div>
+        </div>
+
+      </main>
+
+      {/* フッター */}
+      <footer className="footer">
+        <Link href="/1">日記追加 </Link>
+        <Link href="/2">今日のお題 </Link>
         <Link href="/3">設定</Link>
-      </div>
+      </footer>
+
     </div>
   );
 }
