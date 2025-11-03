@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import Image from 'next/image';
 
 export default function HomePage() {
@@ -117,11 +116,11 @@ export default function HomePage() {
 
       {/* フッター */}
       <footer className="footer">
-        <a href="/1"><Image src="/add.png" alt="" width={70} height={70} /><span>日記追加</span>
+        <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
         </a>
-        <a href="/2"><Image src="/Theme.png" alt="" width={60} height={60} /><span>日記追加</span>
+        <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>日記追加</span>
         </a>
-        <a href="/3"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記追加</span>
+        <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記追加</span>
         </a>
       </footer>
 
