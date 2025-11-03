@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -61,7 +62,15 @@ export default function HomePage() {
     <div>
       {/* ヘッダー */}
       <header className="header">
-        <div className="profile-icon"></div>
+        <div className="profile-icon">
+          <Image
+            src="/icon.jpg" // プロフィール画像のパス
+            alt="プロフィール"
+            width={40}
+            height={40}
+            style={{ borderRadius: '50%' }}
+          />
+        </div>
         <span>Famotto</span>
       </header>
 
@@ -90,7 +99,7 @@ export default function HomePage() {
         {/* 表示確認用 */}
         <div className="card">
           <div className="card-header">
-            <img src="/emoji.png" alt="にこちゃん" className="icon" />
+            <img src="/emoji.png" alt="" className="icon" />
             <span className="username">たろう</span>
           </div>
 
@@ -108,9 +117,12 @@ export default function HomePage() {
 
       {/* フッター */}
       <footer className="footer">
-        <Link href="/1">日記追加 </Link>
-        <Link href="/2">今日のお題 </Link>
-        <Link href="/3">設定</Link>
+        <a href="/1"><Image src="/add.png" alt="" width={70} height={70} /><span>日記追加</span>
+        </a>
+        <a href="/2"><Image src="/Theme.png" alt="" width={60} height={60} /><span>日記追加</span>
+        </a>
+        <a href="/3"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記追加</span>
+        </a>
       </footer>
 
     </div>
