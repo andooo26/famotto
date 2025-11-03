@@ -118,9 +118,9 @@ export default function HomePage() {
       <footer className="footer">
         <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
         </a>
-        <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>日記追加</span>
+        <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
         </a>
-        <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記追加</span>
+        <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
         </a>
       </footer>
 
