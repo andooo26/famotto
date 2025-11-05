@@ -13,7 +13,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
+      <body style={{ margin: 0, padding: 0 }}>
         <AuthProvider>
           {children}
         </AuthProvider>
