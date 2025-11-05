@@ -3,7 +3,7 @@ body {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
-  background-color: #fff;
+  background-color: #f7e5c3ff;
   text-align: center;
 }
 
@@ -53,7 +53,7 @@ body {
 /* 日記カード本体 */
 .diary-card > div {
   width: 80%;
-  background-color: #d4c29a;
+  background-color: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
   padding: 12px;
