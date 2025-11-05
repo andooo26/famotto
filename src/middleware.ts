@@ -1,27 +1,24 @@
-import { auth } from "./auth"
-import { NextResponse } from "next/server"
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  const { pathname } = req.nextUrl
-  const isLoggedIn = !!req.auth
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-  // ログインページは認証しない
+  // /loginは認証確認しない
   if (pathname === "/login") {
-    if (isLoggedIn) {
-      // ルートへリダイレクト
-      return NextResponse.redirect(new URL("/", req.url))
-    }
-    return NextResponse.next()
+    return NextResponse.next();
   }
 
-  // 未認証ならloginへ
-  if (!isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url))
+  // APIなど
+  if (pathname.startsWith("/api") || 
+      pathname.startsWith("/_next") || 
+      pathname.startsWith("/favicon.ico")) {
+    return NextResponse.next();
   }
 
-  return NextResponse.next()
-})
+  return NextResponse.next();
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
-}
+};

@@ -1,10 +1,11 @@
 import type { Metadata } from "next"
 import './diary/tailwind.css';
 // import './globals.css';  
+import { AuthProvider } from "@/contexts/AuthContext"
 
 export const metadata: Metadata = {
   title: "Famotto",
-  description: "Famotto application",
+  description: "Famotto",
 }
 
 export default function RootLayout({
@@ -14,8 +15,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
-        {children}
+      <body style={{ margin: 0, padding: 0 }}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )
