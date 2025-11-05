@@ -17,18 +17,7 @@ export default function HomePage() {
     }
   }, [loading, user, router]);
 
-  useEffect(() => {
-    const fetchDiaries = async () => {
-      try {
-        const res = await fetch('/api/diary');
-        const data = await res.json();
-        setEntries(data);
-      } catch (error) {
-        console.error('日記取得エラー:', error);
-      }
-    };
-    fetchDiaries();
-  }, []);
+  
 
   const handleSignOut = async () => {
     try {
@@ -44,17 +33,17 @@ export default function HomePage() {
   if (!user) return <div>ログインが必要です。</div>;
 
   // 共有ボタン処理 https://developer.mozilla.org/ja/docs/Web/API/Navigator/share
-  const handleShare = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: 'Famotto',
-        text: 'Famotto',
-        url: window.location.href,//現在のページURL
-      });
-    } else {
-      alert('このブラウザは共有機能に対応していません');
-    }
-  };
+  // const handleShare = () => {
+  //   if (navigator.share) {
+  //     navigator.share({
+  //       title: 'Famotto',
+  //       text: 'Famotto',
+  //       url: window.location.href,//現在のページURL
+  //     });
+  //   } else {
+  //     alert('このブラウザは共有機能に対応していません');
+  //   }
+  // };
 
 
   return (
