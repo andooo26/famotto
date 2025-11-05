@@ -1,15 +1,4 @@
-import Image from 'next/image'
-
-export default function DiaryPage() {
-    return (
-        <div>
-            <a href="https://google.com"/*設定画面へ*/><Image
-                src="/images/image.png"
-                alt=""
-                width={100}
-                height={100} />
-            </a>
-            <h1>Fammoto</h1>
-        </div>
-    )
+/*! tailwindcss v4.1.16 | MIT License | https://tailwindcss.com */
+.flex {
+  display: flex;
 }

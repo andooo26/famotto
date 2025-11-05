@@ -9,7 +9,7 @@ export default function DiaryPage() {
                 width={100}
                 height={100} />
             </a>
-            <h1>Fammoto</h1>
+            <h1 className="text-red-500">Fammoto</h1>
         </div>
     )
 }

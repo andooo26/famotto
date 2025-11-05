@@ -1,6 +1,6 @@
 import type { Metadata } from "next"
-import "tailwindcss";
-import './globals.css';
+import './diary/tailwind.css';
+// import './globals.css';  
 
 export const metadata: Metadata = {
   title: "Famotto",
