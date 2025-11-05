@@ -1,21 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-// import { useAuth } from '@/contexts/AuthContext';
-// import { signOut } from '@/lib/auth';
+import { useAuth } from '@/contexts/AuthContext';
+import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function HomePage() {
-  // const { user, loading } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
   const [entries, setEntries] = useState([]);
 
-  // useEffect(() => {
-  //   if (!loading && !user) {
-  //     router.replace('/login');
-  //   }
-  // }, [loading, user, router]);
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
 
   useEffect(() => {
     const fetchDiaries = async () => {
@@ -30,18 +30,18 @@ export default function HomePage() {
     fetchDiaries();
   }, []);
 
-  // const handleSignOut = async () => {
-  //   try {
-  //     await signOut();
-  //     router.push('/login');
-  //   } catch (error) {
-  //     console.error('error:', error);
-  //   }
-  // };
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error('error:', error);
+    }
+  };
 
 
-  // if (loading) return <div>Loading...</div>;
-  // if (!user) return <div>ログインが必要です。</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>ログインが必要です。</div>;
 
   return (
     <div>
