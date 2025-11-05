@@ -1,13 +1,21 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function MenuPage() {
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const router = useRouter();
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const [entries, setEntries] = useState([]);
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
 
     // 共有ボタン処理 https://developer.mozilla.org/ja/docs/Web/API/Navigator/share
     const handleShare = () => {

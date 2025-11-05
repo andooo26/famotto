@@ -75,23 +75,7 @@ export default function HomePage() {
 
       {/* 日記部分 */}
       <main className="diary-card">
-        {/* 日記APIから取得した日記一覧をここに表示
-        {entries.length > 0 ? (
-          entries.map((entry) => (
-            <div key={entry.id} style={{ borderBottom: "1px solid #ccc", marginBottom: "16px" }}>
-              <p>{entry.date}</p>
-              <p>{entry.text}</p>
-              {entry.imageUrl && (
-                <img src={entry.imageUrl} alt="日記画像" style={{ width: "100%", borderRadius: "8px" }} />
-              )}
-              {entry.videoUrl && (
-                <video controls style={{ width: "100%", borderRadius: "8px" }}>
-                  <source src={entry.videoUrl} type="video/mp4" />
-                </video>
-              )}
-            </div>
-          ))
-        ) : ( */}
+        
         <p>日記がまだありません。</p>
         {/* )} */}
 
