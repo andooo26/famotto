@@ -74,29 +74,7 @@ export default function HomePage() {
       </header>
 
       {/* 日記部分 */}
-      <main className="diary-card">
-        
-        <p>日記がまだありません。</p>
-        {/* )} */}
-
-        {/* 表示確認用 */}
-        <div className="card">
-          <div className="card-header">
-            <img src="/emoji.png" alt="" className="icon" />
-            <span className="username">たろう</span>
-          </div>
-
-          <div className="card-content">
-            <p>ここにテキストや画像・動画が入ります。</p>
-          </div>
-
-          <div className="card-footer">
-            <a href="tel:09012345678" className="btn-icon">📞</a>
-            <button onClick={handleShare} className="btn-icon">🔗</button>
-          </div>
-        </div>
-
-      </main>
+      <main className="diary-card"></main>
 
       {/* フッター */}
       <footer className="footer">
