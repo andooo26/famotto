@@ -6,11 +6,9 @@ import fetch from "node-fetch";
 
 initializeApp();
 
-// シークレットなど定義
 const db = getFirestore();
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
-// 0時に定期実行
 export const generateTodaysTheme = onSchedule(
   {
     schedule: "0 0 * * *",
@@ -19,7 +17,7 @@ export const generateTodaysTheme = onSchedule(
   },
   async () => {
     const now = new Date();
-    const yyyymmdd = now.toISOString().slice(0, 10).replace(/-/g, "");
+    const yyyymmdd = now.toISOString().slice(0,10).replace(/-/g, "");
 
     const prompt = `
 あなたは家族の会話を促す「今日のお題」生成をすることが目的です。
@@ -37,8 +35,9 @@ export const generateTodaysTheme = onSchedule(
 `;
 
     try {
+      const modelId = "gemini-2.5-flash-lite";
       const res = await fetch(
-        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        `https://generativelanguage.googleapis.com/v1beta/models/${modelId}:generateContent`,
         {
           method: "POST",
           headers: {
@@ -50,7 +49,6 @@ export const generateTodaysTheme = onSchedule(
           }),
         }
       );
-
       const data = await res.json();
       const text =
         data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
@@ -61,9 +59,9 @@ export const generateTodaysTheme = onSchedule(
         createdAt: now,
       });
 
-      console.log("お題生成完了");
+      console.log("お題生成完了:", text);
     } catch (err) {
-      console.error("お題生成中にエラーが発生:", err);
+      console.error("エラーが発生:", err);
     }
   }
 );
