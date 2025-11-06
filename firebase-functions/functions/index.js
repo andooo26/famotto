@@ -1,32 +1,69 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
+import { onSchedule } from "firebase-functions/v2/scheduler";
+import { defineSecret } from "firebase-functions/params";
+import { initializeApp } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
+import fetch from "node-fetch";
 
-const {setGlobalOptions} = require("firebase-functions");
-const {onRequest} = require("firebase-functions/https");
-const logger = require("firebase-functions/logger");
+initializeApp();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+// シークレットなど定義
+const db = getFirestore();
+const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
-// Create and deploy your first functions
-// https://firebase.google.com/docs/functions/get-started
+// 0時に定期実行
+export const generateTodaysTheme = onSchedule(
+  {
+    schedule: "0 0 * * *",
+    timeZone: "Asia/Tokyo",
+    secrets: [GEMINI_API_KEY],
+  },
+  async () => {
+    const now = new Date();
+    const yyyymmdd = now.toISOString().slice(0, 10).replace(/-/g, "");
 
-// exports.helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+    const prompt = `
+あなたは家族の会話を促す「今日のお題」生成をすることが目的です。
+目的: 家族が会話を始めやすくなる1文の質問を作ること。
+
+出力ルール:
+- 出力は1文の質問形式
+- 優しい・ポジティブな内容
+- 難しい言葉やネガティブな話題を避ける
+- 季節や日常、感情をテーマにする
+- 写真や動画を添付できるようなお題だとなお良い
+- 出力形式: 「今日のお題はxxxxxx？」
+
+今日(${yyyymmdd})にふさわしいお題を1つ作ってください。
+`;
+
+    try {
+      const res = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": GEMINI_API_KEY.value(),
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+          }),
+        }
+      );
+
+      const data = await res.json();
+      const text =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
+        "今日のお題はxxxxxxx";
+
+      await db.collection("todays-theme").doc(yyyymmdd).set({
+        text,
+        createdAt: now,
+      });
+
+      console.log("お題生成完了");
+    } catch (err) {
+      console.error("お題生成中にエラーが発生:", err);
+    }
+  }
+);
