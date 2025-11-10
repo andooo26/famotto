@@ -33,9 +33,15 @@ export default function ThemePage() {
                     </div>
                     <a href='./..'><span>Famotto</span></a>
                 </header>
-
-                <main>
-                    <h1>Theme Page</h1>
+                
+                {/* カード */}
+                <main className="content">
+                    <div className="card">
+                        <div className="card-header">
+                            <h2 className="card-title">今日のお題は...</h2>
+                            <p className="card-subtitle">好きな惣菜</p>
+                        </div>
+                    </div>
                 </main>
 
                 {/* フッター */}
