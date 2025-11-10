@@ -1,4 +1,8 @@
+
 'use client';
+
+import { db } from '@/lib/firebase';
+import { onSnapshot, doc } from 'firebase/firestore';
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,15 +11,28 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 
 export default function ThemePage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [entries, setEntries] = useState([]);
+    const { user, loading } = useAuth();
+    const router = useRouter();
+    const [entries, setEntries] = useState([]);
+    const [theme, setTheme] = useState<string>("");
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
-  }, [loading, user, router]);
+    useEffect(() => {
+        if (!loading && !user) {
+            router.replace('/login');
+        }
+    }, [loading, user, router]);
+
+    useEffect(() => {
+        const yyyymmdd = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+        const unsub = onSnapshot(doc(db, "todays-theme", yyyymmdd), (snap) => {
+            if (snap.exists()) {
+                setTheme(snap.data().text);
+            } else {
+                setTheme("error");
+            }
+        });
+        return () => unsub();
+    }, []);
     return (
         <div>
 
@@ -33,9 +50,16 @@ export default function ThemePage() {
                     </div>
                     <a href='./..'><span>Famotto</span></a>
                 </header>
-
-                <main>
-                    <h1>Theme Page</h1>
+                
+                {/* カード */}
+                <main className="content">
+                    <div className="card">
+                        <div className="card-header">
+                            <h1 className="card-title">今日のお題は...</h1>
+                            <p className="card-subtitle">{theme}</p>
+                            <a href="./diary" className="card-add">今日のお題で日記を作成</a>
+                        </div>
+                    </div>
                 </main>
 
                 {/* フッター */}
