@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-// import './diary/tailwind.css';
 import './globals.css';  
 import { AuthProvider } from "@/contexts/AuthContext"
 
