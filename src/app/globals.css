@@ -170,6 +170,15 @@ body {
   text-overflow: ellipsis;
 }
 
+.card-add {
+  position: absolute;
+  bottom: 24px;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  z-index: 3;
+}
+
 .card-body .muted {
   color: #777;
   font-size: 14px;

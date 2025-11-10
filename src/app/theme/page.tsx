@@ -57,6 +57,7 @@ export default function ThemePage() {
                         <div className="card-header">
                             <h1 className="card-title">今日のお題は...</h1>
                             <p className="card-subtitle">{theme}</p>
+                            <a href="./diary" className="card-add">今日のお題で日記を作成</a>
                         </div>
                     </div>
                 </main>
