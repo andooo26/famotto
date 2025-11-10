@@ -24,7 +24,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div
+    <div className="page-container"
       style={{
         width: '100vw',
         height: '100vh',
@@ -36,6 +36,20 @@ export default function LoginPage() {
         padding: 0
       }}
     >
+      {/* 背景の浮遊球体 */}
+      <div className="floating-spheres">
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+        <div className="sphere"></div>
+      </div>
+      
       <div
         style={{
           textAlign: 'center',
@@ -45,6 +59,8 @@ export default function LoginPage() {
           gap: '1.5rem',
           width: '100%',
           maxWidth: 420,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <h1 style={{ fontSize: '4rem', textShadow: '2px 2px 4px rgba(0,0,0,0.3)', margin: 0 }}>
