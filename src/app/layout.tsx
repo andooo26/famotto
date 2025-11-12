@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import './globals.css';  
 import { AuthProvider } from "@/contexts/AuthContext"
 
 import './globals.css'; //追記

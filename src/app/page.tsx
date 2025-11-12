@@ -9,7 +9,7 @@ import Image from 'next/image';
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [entries, setEntries] = useState([]);
+  // const [entries, setEntries] = useState([]);
 
   useEffect(() => {
     if (!loading && !user) {
