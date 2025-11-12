@@ -11,7 +11,7 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 export const generateTodaysTheme = onSchedule(
   {
-    schedule: "0 0 * * *",
+    schedule: "0 1 * * *",
     timeZone: "Asia/Tokyo",
     secrets: [GEMINI_API_KEY],
   },
