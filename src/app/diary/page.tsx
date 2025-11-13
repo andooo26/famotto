@@ -1,5 +1,5 @@
 "use client";
-import Image from 'next/image';
+import Image from 'next/image'; 
 import './../globals.css';
 
 
@@ -18,7 +18,7 @@ export default function DiaryPage() {
     return (
         <div>
             <header className="header">
-                <a href="https://google.com"/*設定画面へ*/ className=""><Image
+                <a href="./option"/*設定画面へ*/ className=""><Image
                     src="/image copy.png"
                     alt=""
                     width={50}
