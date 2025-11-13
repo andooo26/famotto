@@ -1,0 +1,8 @@
+{
+  "projects": {
+    "default": "famotto-function",
+    "famotto-functions": "famotto-3f25e"
+  },
+  "targets": {},
+  "etags": {}
+}

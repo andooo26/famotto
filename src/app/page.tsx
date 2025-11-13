@@ -1,14 +1,10 @@
 'use client';
 
-// import { useEffect, useState } from 'react';
-// import { useAuth } from '@/contexts/AuthContext';
-// import { signOut } from '@/lib/auth';
-// import { useRouter } from 'next/navigation';
-// import Link from 'next/link';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function HomePage() {
   const { user, loading } = useAuth();
@@ -21,18 +17,7 @@ export default function HomePage() {
     }
   }, [loading, user, router]);
 
-  // useEffect(() => {
-  //   const fetchDiaries = async () => {
-  //     try {
-  //       const res = await fetch('/api/diary');
-  //       const data = await res.json();
-  //       setEntries(data);
-  //     } catch (error) {
-  //       console.error('日記取得エラー:', error);
-  //     }
-  //   };
-  //   fetchDiaries();
-  // }, []);
+  
 
   const handleSignOut = async () => {
     try {
@@ -44,87 +29,52 @@ export default function HomePage() {
   };
 
 
-  // if (loading) return <div>Loading...</div>;
-  // if (!user) return <div>ログインが必要です。</div>;
+  if (loading) return <div>Loading...</div>;
+  if (!user) return <div>ログインが必要です。</div>;
 
-  // return (
-  //   <div>
-  //     {/* ヘッダー */}
-  //     <header className="header">
-  //       <div className="profile-icon"></div>
-  //       <span>Famotto</span>
-  //     </header>
+  // 共有ボタン処理 https://developer.mozilla.org/ja/docs/Web/API/Navigator/share
+  // const handleShare = () => {
+  //   if (navigator.share) {
+  //     navigator.share({
+  //       title: 'Famotto',
+  //       text: 'Famotto',
+  //       url: window.location.href,//現在のページURL
+  //     });
+  //   } else {
+  //     alert('このブラウザは共有機能に対応していません');
+  //   }
+  // };
 
-  //     {/* 日記部分 */}
-  //     <main className="diary-card">
-  //       {/* 日記APIから取得した日記一覧をここに表示
-  //       {entries.length > 0 ? (
-  //         entries.map((entry) => (
-  //           <div key={entry.id} style={{ borderBottom: "1px solid #ccc", marginBottom: "16px" }}>
-  //             <p>{entry.date}</p>
-  //             <p>{entry.text}</p>
-  //             {entry.imageUrl && (
-  //               <img src={entry.imageUrl} alt="日記画像" style={{ width: "100%", borderRadius: "8px" }} />
-  //             )}
-  //             {entry.videoUrl && (
-  //               <video controls style={{ width: "100%", borderRadius: "8px" }}>
-  //                 <source src={entry.videoUrl} type="video/mp4" />
-  //               </video>
-  //             )}
-  //           </div>
-  //         ))
-  //       ) : ( */}
-  //         <p>日記がまだありません。</p>
-        
-  //       {/* )} */}
-  //     </main>
-
-  //     {/* フッター */}
-  //     <footer className="footer">
-  //       <Link href="/1">日記追加 </Link>
-  //       <Link href="/2">今日のお題 </Link>
-  //       <Link href="/3">設定</Link>
-  //     </footer>
-
-  //   </div>
-  // );
-    
-  if (loading) {
-    return (
-      <div>
-      </div>
-    );
-  }
-
-  if (!loading && !user) {
-    return (
-      <div>
-      </div>
-    );
-  }
 
   return (
     <div>
-      <div>
-        <div>
-          <div>
-            <h1>Famotto</h1>
-            
-            {user ? (
-              <div>
-                <div>
-                  <p>ログイン成功</p>
-                  <p>ユーザー: {user.displayName || user.email}</p>
-                </div>
-                
-                <button onClick={handleSignOut}>
-                  ログアウト
-                </button>
-              </div>
-            ) : null}
-          </div>
+      {/* ヘッダー */}
+      <header className="header">
+        <div className="profile-icon">
+          <Image
+            src="/icon.jpg" // プロフィール画像のパス
+            alt="プロフィール"
+            width={40}
+            height={40}
+            style={{ borderRadius: '50%' }}
+          />
         </div>
-      </div>
+        <span>Famotto</span>
+      </header>
+
+      {/* 日記部分 */}
+      <main className="diary-card"></main>
+
+      {/* フッター */}
+      <footer className="footer">
+        <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
+        </a>
+        <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
+        </a>
+        <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
+        </a>
+      </footer>
+
     </div>
   );
 }
