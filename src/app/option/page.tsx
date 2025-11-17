@@ -2,6 +2,13 @@
 import Image from 'next/image'; 
 import './../globals.css';
 
+import './../lib/firebase.ts';
+// import React, { useState, useCallback } from 'react';
+// import { getDocment } from './../lib/firebaseUtils.ts';
+// import { updateDocment } from './../lib/firebaseUtils.ts';
+// import { uploadFile } from './../lib/firebaseUtils.ts';
+// import { getDownloadUrl } from './../lib/firebaseUtils.ts';
+
 export default function DiaryPage() {
     //テスト
     const a = () => {

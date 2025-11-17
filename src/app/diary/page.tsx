@@ -45,11 +45,7 @@ export default function DiaryPage() {
                         <button onClick={b}><div className='flex flex-col items-center'><Image src="/mic.png" alt="" width={50} height={60} /><span>声で入力</span></div></button>
                         <button onClick={c}><div className='flex flex-col items-center'><Image src="/check.png" alt="" width={50} height={60} /><span>日記を投稿</span></div></button>
                     </div>
-                    {/* <div className='flex justify-evenly'>
-                        <button><div className='flex flex-col items-center'><Image src="/upload.jpg" alt="" width={50} height={60}/><span>動画/画像を追加</span></div></button>
-                        <button><div className='flex flex-col items-center'><Image src="/mic.png" alt="" width={50} height={60} /><span>声で入力</span></div></button>
-                        <button><div className='flex flex-col items-center'><Image src="/check.png" alt="" width={50} height={60} /><span>日記を投稿</span></div></button>
-                    </div> */}
+                    
                 </div>
             </main>
 
