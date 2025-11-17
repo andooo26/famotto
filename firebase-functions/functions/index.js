@@ -17,7 +17,8 @@ export const generateTodaysTheme = onSchedule(
   },
   async () => {
     const now = new Date();
-    const yyyymmdd = now.toISOString().slice(0,10).replace(/-/g, "");
+    const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const yyyymmdd = jstNow.toISOString().slice(0,10).replace(/-/g, "");
 
     const prompt = `
 あなたは家族の会話を促す「今日のお題」生成をすることが目的です。
