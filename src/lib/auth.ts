@@ -5,7 +5,9 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
+import { serverTimestamp } from 'firebase/firestore';
 import { auth } from './firebase';
+import { firestoreUtils } from './firebaseUtils';
 
 // プロバイダ設定
 const googleProvider = new GoogleAuthProvider();
@@ -14,7 +16,37 @@ const googleProvider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    const user = result.user;
+    
+    // nameが空ならGoogleのアカウント名
+    if (user.uid) {
+      try {
+        const userDoc = await firestoreUtils.getDocument('users', user.uid);
+        const googleName = user.displayName || '';
+        const isNewUser = !userDoc;
+        const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
+        
+        // 新規ユーザーの場合、createdAtとnameを設定
+        if (isNewUser) {
+          const userData: any = {
+            createdAt: serverTimestamp(),
+          };
+          if (googleName) {
+            userData.name = googleName;
+          }
+          await firestoreUtils.setDocument('users', user.uid, userData);
+        } 
+        else if (needsNameUpdate && googleName) {
+          await firestoreUtils.setDocument('users', user.uid, {
+            name: googleName,
+          });
+        }
+      } catch (firestoreError) {
+        console.error('ユーザー情報の更新エラー:', firestoreError);
+      }
+    }
+    
+    return user;
   } catch (error: any) {
     console.error('Googleサインインエラー:', error);
     
