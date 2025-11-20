@@ -1,19 +1,27 @@
 "use client";
+import React, {useState} from 'react';
 import Image from 'next/image'; 
 import './../globals.css';
 
-import './../lib/firebase.ts';
-// import React, { useState, useCallback } from 'react';
-// import { getDocment } from './../lib/firebaseUtils.ts';
-// import { updateDocment } from './../lib/firebaseUtils.ts';
-// import { uploadFile } from './../lib/firebaseUtils.ts';
-// import { getDownloadUrl } from './../lib/firebaseUtils.ts';
+// import './../lib/firebase.ts';
 
 export default function DiaryPage() {
-    //テスト
-    const a = () => {
-        alert("アイコンを変更ボタンが押されました");
+
+    const [previewUrl, setPreviewUrl] = useState("/icon.jpg");
+    const FileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        console.log(file, "fileの中身");
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setPreviewUrl(reader.result as string);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        
     };
+
     const b = () => {
         alert("保存ボタンが押されました");
     };
@@ -40,11 +48,14 @@ export default function DiaryPage() {
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
                             <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center">
-                                <Image src="/image copy.png" alt="" width={200} height={40} style={{ borderRadius: '50%' }} />
+                                <Image src={previewUrl} alt="" fill={true} style={{ borderRadius: '50%', objectFit: 'cover' }} />
                             </div>
-                            <button onClick={a} className='absolute right-[-35px] bottom-[-10px] p-1 transition'>
-                                <Image src="/upload.jpg" alt="" width={32} height={32}/>
-                            </button>
+                            <form action="/" method="post" encType="multipart/form-data">
+                                <input type="file" accept="image/*" id="file-upload-input" onChange={FileChange} style={{ display: 'none' }} />
+                                <label htmlFor="file-upload-input" className='absolute right-[-35px] bottom-[-10px] p-1 transition cursor-pointer'>
+                                    <Image src="/upload.jpg" alt="" width={32} height={32}/>
+                                </label>
+                            </form>
                         </div>
                     </div>
                     <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl' placeholder="新しいユーザー名を入力"></input>
