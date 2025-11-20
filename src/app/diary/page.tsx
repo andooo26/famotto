@@ -4,7 +4,7 @@ import './../globals.css';
 
 
 export default function DiaryPage() {
-    //テスト
+    //テスト    
     const a = () => {
         alert("動画/画像を追加ボタンが押されました");
     };
