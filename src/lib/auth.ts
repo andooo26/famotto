@@ -26,9 +26,10 @@ export const signInWithGoogle = async () => {
         const isNewUser = !userDoc;
         const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
         
-        // 新規ユーザーの場合、createdAtとnameを設定
+        // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加
         if (isNewUser) {
           const userData: any = {
+            uid: user.uid,
             createdAt: serverTimestamp(),
           };
           if (googleName) {
