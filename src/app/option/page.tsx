@@ -24,48 +24,14 @@ export default function DiaryPage() {
         }
     };
 
-    // const handleSave = async () => {
-    //     if (!imageFile) {
-    //         alert("画像が選択されていません");
-    //         return;
-    //     }
-
-    //     if (!userName) {
-    //         alert("ユーザー名を入力してください");
-    //         return;
-    //     }
-
-    //     try {
-    //         // 1️⃣ Storage に画像アップロード
-    //         const path = `usericon/profile_${Date.now()}.jpg`;
-    //         const downloadUrl = await storageUtils.uploadFile(path, imageFile);
-
-    //         // 2️⃣ Firestore にユーザー情報を保存
-    //         const newUserData = {
-    //             name: userName,
-    //             photoUrl: downloadUrl,
-    //             createdAt: new Date(),
-    //         };
-
-    //         await firestoreUtils.addDocument("users", newUserData);
-
-    //         alert("保存しました！");
-
-    //     } catch (error) {
-    //         console.error(error);
-    //         alert("保存中にエラーが発生しました");
-    //     }
-    // };
-
     const handleSave = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
-
         if (!user) {
             alert("ログインしていません");
             return;
         }
-
+        
         const uid = user.uid;
 
         if (!userName) {
@@ -74,26 +40,30 @@ export default function DiaryPage() {
         }
 
         try {
-            let iconUrl = previewUrl;
+            // 1️⃣ uid に一致するドキュメントを検索
+            const users = await firestoreUtils.getCollectionWhere("users", "uid", "==", uid);
 
-            // 1️⃣ アイコンが変更されたときだけ Storage にアップロード
+            if (users.length === 0) {
+                alert("ユーザーデータが見つかりませんでした。");
+                return;
+            }
+
+            const targetDocId = users[0].id;
+
+            // 2️⃣ 画像があれば Storage に更新して URL を取得
+            let iconUrl = users[0].iconUrl ?? null;
+
             if (imageFile) {
-                const path = `users/${uid}/icon.jpg`; 
+                const path = `users/${uid}/icon.jpg`;
                 iconUrl = await storageUtils.uploadFile(path, imageFile);
             }
 
-            // 2️⃣ Firestore に uid をキーに保存（update or create）
-            const userData = {
+            // 3️⃣ Firestore を更新
+            await firestoreUtils.updateDocument("users", targetDocId, {
                 name: userName,
                 iconUrl: iconUrl,
                 updatedAt: new Date(),
-            };
-
-            await firestoreUtils.updateDocument("users", uid, userData)
-                .catch(async () => {
-                    // ドキュメントが無い場合は新規作成
-                    // await firestoreUtils.addDocument("users", { id: uid, ...userData });
-                });
+            });
 
             alert("保存しました！");
 
