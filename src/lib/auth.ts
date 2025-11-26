@@ -6,7 +6,7 @@ import {
   User
 } from 'firebase/auth';
 import { serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, storage } from './firebase';
 import { firestoreUtils } from './firebaseUtils';
 
@@ -45,6 +45,10 @@ export const signInWithGoogle = async () => {
               const blob = await response.blob();
               const storageRef = ref(storage, `users/${user.uid}/icon.png`);
               await uploadBytes(storageRef, blob);
+              const iconUrl = await getDownloadURL(storageRef);
+              await firestoreUtils.setDocument('users', user.uid, {
+                iconUrl: iconUrl,
+              });
             } catch (iconError) {
               console.error('アイコンの保存に失敗:', iconError);
             }
