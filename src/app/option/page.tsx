@@ -31,7 +31,7 @@ export default function DiaryPage() {
             alert("ログインしていません");
             return;
         }
-        
+
         const uid = user.uid;
 
         if (!userName) {
