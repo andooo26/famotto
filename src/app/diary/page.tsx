@@ -1,55 +1,55 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { signOut } from '@/lib/auth';
+import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import DiaryForm from '../../components/diaryForm';
+import './../globals.css';
+
+
 export default function DiaryPage() {
-    const [title, setTitle] = useState('');
-    const [content, setContent] = useState('');
-    const [image, setImage] = useState<File | null>(null);
-    const [preview, setPreview] = useState<string | null>(null);
-    
+  const { user, loading } = useAuth();
+  const router = useRouter();
+  const [entries, setEntries] = useState([]);
 
-
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('/login');
+    }
+  }, [loading, user, router]);
     return (
         <div>
-            {/* ヘッダー */}
-            <header className="header">
-                <div className="profile-icon">
-                    <Image
-                        src="/icon.jpg"
-                        alt="プロフィール"
-                        width={40}
-                        height={40}
-                        style={{ borderRadius: '50%' }}
-                    />
-                </div>
-                <a href="./..">
-                    <span>Famotto</span>
-                </a>
-            </header>
 
-            {/* メイン（日記追加フォーム） */}
-            <main style={{ padding: 20 }}>
-                <h1>日記を追加</h1>
-                <DiaryForm />
-            </main>
+            <div>
+                {/* ヘッダー */}
+                <header className="header">
+                    <div className="profile-icon">
+                        <Image
+                            src="/icon.jpg" // プロフィール画像のパス
+                            alt="プロフィール"
+                            width={40}
+                            height={40}
+                            style={{ borderRadius: '50%' }}
+                        />
+                    </div>
+                    <a href='./..'><span>Famotto</span></a>
+                    
+                </header>
+                <main><h1>Diary Page</h1></main>
+                {/* フッター */}
+                <footer className="footer">
+                    <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
+                    </a>
+                    <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
+                    </a>
+                    <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
+                    </a>
+                </footer>
 
-            {/* フッター */}
-            <footer className="footer">
-                <a href="./diary">
-                    <Image src="/add.png" alt="" width={60} height={60} />
-                    <span>日記追加</span>
-                </a>
-                <a href="./theme">
-                    <Image src="/theme.png" alt="" width={60} height={60} />
-                    <span>今日のお題</span>
-                </a>
-                <a href="./menu">
-                    <Image src="/menu.png" alt="" width={60} height={60} />
-                    <span>日記確認</span>
-                </a>
-            </footer>
+            </div>
         </div>
+
+
     );
 }

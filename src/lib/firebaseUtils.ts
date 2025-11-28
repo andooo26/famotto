@@ -5,6 +5,7 @@ import {
   getDocs, 
   addDoc, 
   updateDoc, 
+  setDoc,
   deleteDoc,
   query,
   where,
@@ -51,6 +52,12 @@ export const firestoreUtils = {
   updateDocument: async (collectionName: string, docId: string, data: any) => {
     const docRef = doc(db, collectionName, docId);
     await updateDoc(docRef, data);
+  },
+
+  // ドキュメントを設定
+  setDocument: async (collectionName: string, docId: string, data: any) => {
+    const docRef = doc(db, collectionName, docId);
+    await setDoc(docRef, data, { merge: true });
   },
 
   // ドキュメントを削除
