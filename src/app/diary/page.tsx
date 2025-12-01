@@ -1,55 +1,56 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { signOut } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import Image from 'next/image';
-import './../globals.css';
-
-
+import DiaryForm from '../../components/diaryForm';
 export default function DiaryPage() {
-  const { user, loading } = useAuth();
-  const router = useRouter();
-  const [entries, setEntries] = useState([]);
+    const [title, setTitle] = useState('');
+    const [content, setContent] = useState('');
+    const [image, setImage] = useState<File | null>(null);
+    const [preview, setPreview] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace('/login');
-    }
-  }, [loading, user, router]);
+
+
     return (
         <div>
+            
+            
+            <header className="header">
+                <div className="profile-icon">
+                    <Image
+                        src="/icon.jpg"
+                        alt="プロフィール"
+                        width={40}
+                        height={40}
+                        style={{ borderRadius: '50%' }}
+                    />
+                </div>
+                <a href="./..">
+                    <span>Famotto</span>
+                </a>
+            </header>
 
-            <div>
-                {/* ヘッダー */}
-                <header className="header">
-                    <div className="profile-icon">
-                        <Image
-                            src="/icon.jpg" // プロフィール画像のパス
-                            alt="プロフィール"
-                            width={40}
-                            height={40}
-                            style={{ borderRadius: '50%' }}
-                        />
-                    </div>
-                    <a href='./..'><span>Famotto</span></a>
-                    
-                </header>
-                <main><h1>Diary Page</h1></main>
-                {/* フッター */}
-                <footer className="footer">
-                    <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
-                    </a>
-                    <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
-                    </a>
-                    <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
-                    </a>
-                </footer>
+           
+            <main style={{ padding: 20 }}>
+                <h1>日記を追加</h1>
+                <DiaryForm />
+            </main>
 
-            </div>
+           
+            <footer className="footer">
+                <a href="./diary">
+                    <Image src="/add.png" alt="" width={60} height={60} />
+                    <span>日記追加</span>
+                </a>
+                <a href="./theme">
+                    <Image src="/theme.png" alt="" width={60} height={60} />
+                    <span>今日のお題</span>
+                </a>
+                <a href="./menu">
+                    <Image src="/menu.png" alt="" width={60} height={60} />
+                    <span>日記確認</span>
+                </a>
+            </footer>
         </div>
-
-
     );
 }
