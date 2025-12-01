@@ -13,8 +13,8 @@ export default function DiaryPage() {
 
     return (
         <div>
-            
-            
+
+
             <header className="header">
                 <div className="profile-icon">
                     <Image
@@ -30,13 +30,14 @@ export default function DiaryPage() {
                 </a>
             </header>
 
-           
+
             <main style={{ padding: 20 }}>
                 <h1>日記を追加</h1>
                 <DiaryForm />
+               
             </main>
 
-           
+
             <footer className="footer">
                 <a href="./diary">
                     <Image src="/add.png" alt="" width={60} height={60} />
