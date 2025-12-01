@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import './globals.css';  
 import { AuthProvider } from "@/contexts/AuthContext"
 
 import './globals.css'; //追記
@@ -15,7 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body>
+      <body style={{ margin: 0, padding: 0 }}>
         <AuthProvider>
           {children}
         </AuthProvider>

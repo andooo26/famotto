@@ -5,7 +5,10 @@ import {
   onAuthStateChanged,
   User
 } from 'firebase/auth';
-import { auth } from './firebase';
+import { serverTimestamp } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, storage } from './firebase';
+import { firestoreUtils } from './firebaseUtils';
 
 // プロバイダ設定
 const googleProvider = new GoogleAuthProvider();
@@ -14,7 +17,54 @@ const googleProvider = new GoogleAuthProvider();
 export const signInWithGoogle = async () => {
   try {
     const result = await signInWithPopup(auth, googleProvider);
-    return result.user;
+    const user = result.user;
+    
+    // nameが空ならGoogleのアカウント名
+    if (user.uid) {
+      try {
+        const userDoc = await firestoreUtils.getDocument('users', user.uid) as { id: string; name?: string } | null;
+        const googleName = user.displayName || '';
+        const isNewUser = !userDoc;
+        const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
+        
+        // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加, Googleのアイコンを設定
+        if (isNewUser) {
+          const userData: any = {
+            uid: user.uid,
+            createdAt: serverTimestamp(),
+          };
+          if (googleName) {
+            userData.name = googleName;
+          }
+          await firestoreUtils.setDocument('users', user.uid, userData);
+          
+          // Googleアカウントのアイコンをに保存
+          if (user.photoURL) {
+            try {
+              const response = await fetch(user.photoURL);
+              const blob = await response.blob();
+              const storageRef = ref(storage, `users/${user.uid}/icon.png`);
+              await uploadBytes(storageRef, blob);
+              const iconUrl = await getDownloadURL(storageRef);
+              await firestoreUtils.setDocument('users', user.uid, {
+                iconUrl: iconUrl,
+              });
+            } catch (iconError) {
+              console.error('アイコンの保存に失敗:', iconError);
+            }
+          }
+        } 
+        else if (needsNameUpdate && googleName) {
+          await firestoreUtils.setDocument('users', user.uid, {
+            name: googleName,
+          });
+        }
+      } catch (firestoreError) {
+        console.error('ユーザー情報の更新エラー:', firestoreError);
+      }
+    }
+    
+    return user;
   } catch (error: any) {
     console.error('Googleサインインエラー:', error);
     

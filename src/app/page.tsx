@@ -9,7 +9,7 @@ import Image from 'next/image';
 export default function HomePage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [entries, setEntries] = useState([]);
+  // const [entries, setEntries] = useState([]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -50,16 +50,32 @@ export default function HomePage() {
     <div>
       {/* ヘッダー */}
       <header className="header">
-        <div className="profile-icon">
-          <Image
-            src="/icon.jpg" // プロフィール画像のパス
-            alt="プロフィール"
-            width={40}
-            height={40}
-            style={{ borderRadius: '50%' }}
-          />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div className="profile-icon">
+            <Image
+              src="/icon.jpg"
+              alt="プロフィール"
+              width={40}
+              height={40}
+              style={{ borderRadius: '50%' }}
+            />
+          </div>
+          <span>Famotto</span>
         </div>
-        <span>Famotto</span>
+        <button
+          onClick={handleSignOut}
+          style={{
+            background: 'none',
+            border: '1px solid #ccc',
+            borderRadius: '4px',
+            padding: '8px 16px',
+            cursor: 'pointer',
+            fontSize: '14px',
+            color: '#333',
+          }}
+        >
+          ログアウト
+        </button>
       </header>
 
       {/* 日記部分 */}
