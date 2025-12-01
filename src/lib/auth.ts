@@ -6,7 +6,8 @@ import {
   User
 } from 'firebase/auth';
 import { serverTimestamp } from 'firebase/firestore';
-import { auth } from './firebase';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, storage } from './firebase';
 import { firestoreUtils } from './firebaseUtils';
 
 // プロバイダ設定
@@ -21,12 +22,12 @@ export const signInWithGoogle = async () => {
     // nameが空ならGoogleのアカウント名
     if (user.uid) {
       try {
-        const userDoc = await firestoreUtils.getDocument('users', user.uid);
+        const userDoc = await firestoreUtils.getDocument('users', user.uid) as { id: string; name?: string } | null;
         const googleName = user.displayName || '';
         const isNewUser = !userDoc;
         const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
         
-        // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加
+        // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加, Googleのアイコンを設定
         if (isNewUser) {
           const userData: any = {
             uid: user.uid,
@@ -36,6 +37,22 @@ export const signInWithGoogle = async () => {
             userData.name = googleName;
           }
           await firestoreUtils.setDocument('users', user.uid, userData);
+          
+          // Googleアカウントのアイコンをに保存
+          if (user.photoURL) {
+            try {
+              const response = await fetch(user.photoURL);
+              const blob = await response.blob();
+              const storageRef = ref(storage, `users/${user.uid}/icon.png`);
+              await uploadBytes(storageRef, blob);
+              const iconUrl = await getDownloadURL(storageRef);
+              await firestoreUtils.setDocument('users', user.uid, {
+                iconUrl: iconUrl,
+              });
+            } catch (iconError) {
+              console.error('アイコンの保存に失敗:', iconError);
+            }
+          }
         } 
         else if (needsNameUpdate && googleName) {
           await firestoreUtils.setDocument('users', user.uid, {
