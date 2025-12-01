@@ -273,45 +273,48 @@ body {
 /* -----------------------------------
   カード一覧コンテナ
 ----------------------------------- */
+/* -----------------------------------
+   カード一覧コンテナ
+----------------------------------- */
 .diary-card {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  padding-bottom: 100px; /* フッターが重ならないように */
+ flex: 1;
+ display: flex;
+ flex-direction: column;
+ align-items: center;
+ gap: 16px;
+ padding: 16px;
+ padding-bottom: 100px; /* フッターが重ならないように */
 }
 
-/* 日記カード本体 */
+/* 日記カード本体 (.diary-cardの子要素のdivに適用される) */
 .diary-card > div {
-  width: 80%;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-  padding: 12px;
-  text-align: left;
-  position: relative;
+ width: 80%;
+ background-color: #fff;
+ border-radius: 8px;
+ box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+ padding: 12px;
+ text-align: left;
+ position: relative;
 }
 
 /* 日記カード内テキスト */
 .diary-card p {
-  margin: 6px 0;
-  word-break: break-word;
+ margin: 6px 0;
+ word-break: break-word;
 }
 
 /* 日記画像 */
 .diary-card img {
-  margin-top: 8px;
-  width: 100%;
-  border-radius: 8px;
+ margin-top: 8px;
+ width: 100%;
+ border-radius: 8px;
 }
 
 /* 日記動画 */
 .diary-card video {
-  margin-top: 8px;
-  width: 100%;
-  border-radius: 8px;
+ margin-top: 8px;
+ width: 100%;
+ border-radius: 8px;
 }
 
 /* -----------------------------------
