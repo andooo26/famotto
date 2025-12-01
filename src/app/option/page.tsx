@@ -8,14 +8,16 @@ import { getAuth } from 'firebase/auth';
 
 export default function DiaryPage() {
 
-    const [previewUrl, setPreviewUrl] = useState("/icon.jpg");
-    const [imageFile, setImageFile] = useState<File | null>(null); // ← 画像ファイル保持
-    const [userName, setUserName] = useState(""); // ← ユーザー名保持
+    const [headerIcon, setHeaderIcon] = useState("/icon.jpg"); //アイコンをfirebaseからとってきたい
+    const [previewUrl, setPreviewUrl] = useState("/icon.jpg"); //こっちも
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [userName, setUserName] = useState("");
+    const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
 
     const FileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            setImageFile(file); // ← 保存用に保持
+            setImageFile(file);
             const reader = new FileReader();
             reader.onloadend = () => {
                 setPreviewUrl(reader.result as string);
@@ -27,46 +29,28 @@ export default function DiaryPage() {
     const handleSave = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
-        if (!user) {
-            alert("ログインしていません");
-            return;
-        }
-
         const uid = user.uid;
 
-        if (!userName) {
-            alert("名前を入力してください");
-            return;
-        }
-
         try {
-            // 1️⃣ uid に一致するドキュメントを検索
             const users = await firestoreUtils.getCollectionWhere("users", "uid", "==", uid);
-
             if (users.length === 0) {
                 alert("ユーザーデータが見つかりませんでした。");
                 return;
             }
-
             const targetDocId = users[0].id;
 
-            // 2️⃣ 画像があれば Storage に更新して URL を取得
             let iconUrl = users[0].iconUrl ?? null;
-
             if (imageFile) {
                 const path = `users/${uid}/icon.jpg`;
                 iconUrl = await storageUtils.uploadFile(path, imageFile);
             }
 
-            // 3️⃣ Firestore を更新
             await firestoreUtils.updateDocument("users", targetDocId, {
                 name: userName,
                 iconUrl: iconUrl,
                 updatedAt: new Date(),
             });
-
             alert("保存しました！");
-
         } catch (error) {
             console.error(error);
             alert("保存中にエラーが発生しました");
@@ -76,7 +60,7 @@ export default function DiaryPage() {
     return (
         <div>
             <header className="header">
-                <Image src="/icon.jpg" alt="" width={50} height={40} style={{ borderRadius: '50%', objectFit: "cover" }} />
+                <Image src={headerIcon} alt="" width={50} height={40} style={{ borderRadius: '50%', objectFit: "cover" }} />
                 <h1 className="text-5xl">Fammoto</h1>
             </header>
 
@@ -104,7 +88,7 @@ export default function DiaryPage() {
                     <button onClick={handleSave} className='mt-7 text-xl w-30 bg-purple-300 rounded-full'>✓保存する</button>
                     <div className='flex mt-7 mb-7'>
                         <p className='text-2xl'>招待リンク　</p>
-                        <p className='text-2xl text-gray-400'>/*リンク*/</p>
+                        <p className='text-2xl text-gray-400'>{groupUrl}</p>
                     </div>
                 </div>
             </main>
