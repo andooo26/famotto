@@ -41,7 +41,7 @@ export default function DiaryPage() {
 
             let iconUrl = users[0].iconUrl ?? null;
             if (imageFile) {
-                const path = `users/${uid}/icon.jpg`;
+                const path = `users/${uid}/icon.png`;
                 iconUrl = await storageUtils.uploadFile(path, imageFile);
             }
 

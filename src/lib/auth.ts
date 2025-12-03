@@ -49,7 +49,7 @@ export const signInWithGoogle = async () => {
           };
           await firestoreUtils.setDocument('groups', groupId, groupData);
           
-          // Googleアカウントのアイコンをに保存
+          // Googleアカウントのアイコンを保存
           if (user.photoURL) {
             try {
               const response = await fetch(user.photoURL);
