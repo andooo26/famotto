@@ -26,17 +26,28 @@ export const signInWithGoogle = async () => {
         const googleName = user.displayName || '';
         const isNewUser = !userDoc;
         const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
+        const groupId = crypto.randomUUID();
         
         // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加, Googleのアイコンを設定
         if (isNewUser) {
           const userData: any = {
             uid: user.uid,
             createdAt: serverTimestamp(),
+            groupId: groupId,
           };
           if (googleName) {
             userData.name = googleName;
           }
           await firestoreUtils.setDocument('users', user.uid, userData);
+
+          //groupsコレクション作成
+          const groupData = {
+            groupId: groupId,
+            groupUrl: 'まだだよ',
+            members: [user.uid],
+            createdAt: serverTimestamp(),
+          };
+          await firestoreUtils.setDocument('groups', groupId, groupData);
           
           // Googleアカウントのアイコンをに保存
           if (user.photoURL) {
