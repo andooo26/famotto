@@ -2,88 +2,103 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { db } from '@/lib/firebase'; 
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { db, storage } from '@/lib/firebase';
+import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
+import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 
-// --- 型定義 ---
 interface DiaryEntry {
   id: string;
   title: string;
   content: string;
   uid: string;
   mediaUrl?: string;
-  timestamp: { toDate: () => Date }; // Firestore Timestampの簡易的な型
+  timestamp: { toDate: () => Date };
 }
 
-// --- ヘルパーコンポーネント: メディア表示 ---
+interface DiaryWithUser extends DiaryEntry {
+  userName: string;
+  userIconUrl: string;
+}
+
 const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   if (!mediaUrl) return null;
 
-  // URLの拡張子を見て、メディアの種類を判定
-  if (/\.(jpe?g|png|gif|webp)/i.test(mediaUrl)) {
-  return <img src={mediaUrl} alt="添付画像" style={{ objectFit: 'contain' }} />;
-}
+  if (/.(jpe?g|png|gif|webp)/i.test(mediaUrl)) {
+    return <img src={mediaUrl} alt="添付画像" style={{ objectFit: 'contain', maxWidth: '100%' }} />;
+  }
 
-if (/\.(mp4|mov|webm)/i.test(mediaUrl)) {
-  return <video src={mediaUrl} controls />;
-}
+  if (/.(mp4|mov|webm)/i.test(mediaUrl)) {
+    return <video src={mediaUrl} controls style={{ maxWidth: '100%' }} />;
+  }
 
   return null;
 };
 
-
-// --- メインコンポーネント ---
 export default function MenuPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
+  const [diaries, setDiaries] = useState<DiaryWithUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // 認証チェック
+  // ▼ 追加：ユーザーリストと選択されたユーザー
+  const [selectedUser, setSelectedUser] = useState<string>("all");
+  const [userList, setUserList] = useState<{ uid: string; name: string }[]>([]);
+
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [loading, user, router]);
 
-  // 日記データ取得
   useEffect(() => {
-    if (user) {
-      const fetchDiaries = async () => {
-        setDataLoading(true);
-        // 新しいもの順に全件取得
-        const q = query(collection(db, 'diary'), orderBy('timestamp', 'desc'));
-  
-        try {
-          const querySnapshot = await getDocs(q);
-          const fetchedDiaries: DiaryEntry[] = [];
-  
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            fetchedDiaries.push({
-              id: doc.id,
-              title: data.title,
-              content: data.content,
-              uid: data.uid,
-              mediaUrl: data.mediaUrl,
-              timestamp: data.timestamp,
-            } as DiaryEntry);
-          });
-  
-          setDiaries(fetchedDiaries);
-        } catch (error) {
-          console.error("日記の取得中にエラーが発生しました:", error);
-        } finally {
-          setDataLoading(false);
-        }
-      };
-  
-      fetchDiaries();
-    }
+    if (!user) return;
+
+   const fetchDiariesWithUser = async () => {
+      setDataLoading(true);
+      try {
+        
+        // 1. 【高速化】ユーザー情報を一度に取得し、マップに整理 (1回の読み取り)
+        const usersSnap = await getDocs(collection(db, "users"));
+        const userMap: Record<string, { name: string; iconUrl: string }> = {};
+        
+        const users = usersSnap.docs.map(u => {
+          const data = u.data() as any;
+          // アイコンURLがない場合はフォールバックパスを使用
+          const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "" };
+          userMap[u.id] = userInfo;
+          return { uid: u.id, name: userInfo.name };
+        });
+        setUserList(users);
+
+        // 2. 日記を一括取得 (1回の読み取り)
+        const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
+        const snapshot = await getDocs(q);
+
+        // 3. 【結合】取得した日記とユーザー情報をメモリ内で結合（追加の読み取りなし）
+        const diariesWithUser: DiaryWithUser[] = snapshot.docs.map(docSnap => {
+          const data = docSnap.data() as DiaryEntry;
+          // マップからユーザー情報を参照
+          const userData = userMap[data.uid] || { name: "不明なユーザ", iconUrl: "" };
+          
+          return {
+            ...data,
+            id: docSnap.id,
+            userName: userData.name,
+            userIconUrl: userData.iconUrl,
+          };
+        });
+
+        setDiaries(diariesWithUser);
+      } catch (err) {
+        console.error("日記取得失敗:", err);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchDiariesWithUser();
   }, [user]);
 
-  // 共有ボタン処理 
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -96,95 +111,98 @@ export default function MenuPage() {
     }
   };
 
-  // ロード中の表示
   if (loading || (user && dataLoading)) {
     return <div>ロード中...</div>;
   }
-  
+
+  // ---------------------
+  // ▼ 選択ユーザーで絞り込み
+  // ---------------------
+  const filteredDiaries =
+    selectedUser === "all"
+      ? diaries
+      : diaries.filter((d) => d.uid === selectedUser);
+
   return (
     <div>
-        <div>
-            {/* ヘッダー: CSSクラス 'header' を使用 */}
-            <header className="header">
-                <div className="profile-icon">
-                    <Image
-                        src="/icon.jpg"
-                        alt="プロフィール"
-                        width={40}
-                        height={40}
-                        style={{ borderRadius: '50%' }}
-                    />
-                </div>
-                {/* CSSクラス 'header a' を使用 */}
-                <a href='./..'>
-                    <span>Famotto</span>
-                </a>
-            </header>
+      <header className="header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
+        <img src="/icon.jpg" alt="プロフィール" style={{ width: 40, height: 40, borderRadius: '50%' }} />
+        <a href="./.."><span>Famotto</span></a>
+      </header>
 
-            {/* メインコンテンツ: CSSクラス 'diary-card' を使用 */}
-            <main className="diary-card">
-                <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿 📝</h1>
-                
-                {diaries.length === 0 && (
-                    <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>
-                )}
+      <main className="diary-card" style={{ padding: '10px' }}>
+        <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿</h1>
 
-                {diaries.map((diary) => (
-                    // .diary-card > div にスタイルが適用される
-                    <div key={diary.id}>
-                        
-                        {/* Card Header (投稿者/アイコン) */}
-                        <div className="card-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-                            <img src="/emoji.png" alt="ユーザーアイコン" className="icon" style={{ width: '24px', height: '24px', marginRight: '8px' }} />
-                            <span className="username" style={{ fontWeight: 'bold', color: '#1da1f2' }}>
-                                @{diary.uid.substring(0, 8)}...
-                            </span>
-                        </div>
-
-                        {/* Card Content (タイトル/本文/メディア) */}
-                        <div className="card-content">
-                            <h3 style={{ fontSize: '1.1em', margin: '5px 0' }}>{diary.title}</h3>
-                            <p>{diary.content}</p>
-                            
-                            {diary.mediaUrl && (
-                              <div style={{ margin: '15px 0' }}>
-                                <MediaRenderer mediaUrl={diary.mediaUrl} />
-                              </div>
-                            )}
-                        </div>
-
-                        {/* Card Footer (日時/アクションボタン) */}
-                        <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
-                            <p style={{ fontSize: '0.8em', color: '#657786' }}>
-                                投稿日時: {diary.timestamp.toDate().toLocaleString()}
-                            </p>
-                            <div>
-                                <a href={`tel:${diary.uid}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a> 
-                                <button onClick={handleShare} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
-                            </div>
-                        </div>
-                    </div>
-                ))}
-            </main>
-            
-            {/* フッター: CSSクラス 'footer' を使用 */}
-            <footer className="footer">
-                {/* CSSクラス 'footer a' を使用 */}
-                <a href="./diary">
-                    <Image src="/add.png" alt="日記追加" width={40} height={40} />
-                    <span>日記追加</span>
-                </a>
-                <a href="./theme">
-                    <Image src="/theme.png" alt="今日のお題" width={40} height={40} />
-                    <span>今日のお題</span>
-                </a>
-                <a href="./menu">
-                    <Image src="/menu.png" alt="日記確認" width={40} height={40} />
-                    <span>日記確認</span>
-                </a>
-            </footer>
-
+        {/* ▼ 追加：ユーザーで絞り込み UI */}
+        <div style={{ marginBottom: "15px" }}>
+          <label style={{ marginRight: "8px" }}>ユーザーで絞り込み：</label>
+          <select
+            value={selectedUser}
+            onChange={(e) => setSelectedUser(e.target.value)}
+            style={{
+              padding: "6px",
+              borderRadius: "6px",
+              border: "1px solid #ccc"
+            }}
+          >
+            <option value="all">全員</option>
+            {userList.map((u) => (
+              <option key={u.uid} value={u.uid}>{u.name}</option>
+            ))}
+          </select>
         </div>
+
+        {filteredDiaries.length === 0 && (
+          <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>
+        )}
+
+        {filteredDiaries.map((diary) => (
+          <div key={diary.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0' }}>
+            <div className="card-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+              <img
+                src={diary.userIconUrl}
+                alt={diary.userName}
+                style={{ width: 24, height: 24, marginRight: 8, borderRadius: '50%' }}
+              />
+              <span style={{ fontWeight: 'bold', color: '#000000ff' }}>{diary.userName}</span>
+            </div>
+
+            <div className="card-content">
+              <h3 style={{ fontSize: '1.1em', margin: '5px 0' }}>{diary.title}</h3>
+              <p>{diary.content}</p>
+
+              {diary.mediaUrl && (
+                <div style={{ margin: '15px 0' }}>
+                  <MediaRenderer mediaUrl={diary.mediaUrl} />
+                </div>
+              )}
+            </div>
+
+            <div className="card-footer" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '10px',
+              borderTop: '1px solid #eee',
+              paddingTop: '10px'
+            }}>
+              <p style={{ fontSize: '0.8em', color: '#657786' }}>
+                投稿日時: {diary.timestamp.toDate().toLocaleString()}
+              </p>
+
+              <div>
+                <a href={`tel:${diary.uid}`} style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                <button
+                  onClick={handleShare}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}
+                >
+                  🔗
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </main>
     </div>
   );
 }
