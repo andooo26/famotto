@@ -14,10 +14,60 @@ const generateUniqueId = (): string => {
   return timestamp + randomPart;
 };
 
+// ▼ 追加：音声認識
+const SpeechRecognition =
+  typeof window !== "undefined"
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+
 export default function DiaryForm() {
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+
+
+  // ▼ 追加：音声認識 状態
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  // ▼ 音声認識セットアップ
+  const startSpeechRecognition = () => {
+    if (!SpeechRecognition) {
+      alert("このブラウザは音声入力に対応していません");
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "ja-JP";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event: any) => {
+        let text = "";
+        for (let i = 0; i < event.results.length; i++) {
+          text += event.results[i][0].transcript;
+        }
+        setContent(prev => prev + text);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    recognitionRef.current.start();
+    setIsRecording(true);
+  };
+
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsRecording(false);
+  };
 
   // input type="file" を非表示にしてボタンで開く
   const fileInputRef = useRef<HTMLInputElement | null>(null);
@@ -97,6 +147,8 @@ export default function DiaryForm() {
     }
   };
 
+
+
   return (
     <main className="">
       <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto">
@@ -161,6 +213,7 @@ export default function DiaryForm() {
             <button
               onClick={() => fileInputRef.current?.click()}
               type="button"
+              disabled={isRecording}
             >
               <div className="flex flex-col items-center">
                 <Image src="/upload.jpg" alt="" width={50} height={60} />
@@ -168,16 +221,34 @@ export default function DiaryForm() {
               </div>
             </button>
 
-            {/* 声で入力（未実装） */}
-            <button type="button">
+            {/* 声で入力（音声認識） */}
+            <button
+              type="button"
+              onClick={() => {
+                if (isRecording) {
+                  stopSpeechRecognition();
+                } else {
+                  startSpeechRecognition();
+                }
+              }}
+            >
               <div className="flex flex-col items-center">
                 <Image src="/mic.png" alt="" width={50} height={60} />
-                <span>声で入力</span>
+                <span>{isRecording ? "録音停止" : "声で入力"}</span>
               </div>
             </button>
 
+            {/* 録音中の表示 */}
+            {isRecording && (
+              <p className="text-red-600 text-center mt-2">録音中…</p>
+            )}
+
             {/* 投稿 */}
-            <button onClick={handleSubmit} type="button">
+            <button
+              onClick={handleSubmit}
+              type="button"
+              disabled={isRecording}>
+
               <div className="flex flex-col items-center">
                 <Image src="/check.png" alt="" width={50} height={60} />
                 <span>日記を投稿</span>
