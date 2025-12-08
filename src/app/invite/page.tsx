@@ -1,16 +1,17 @@
 "use client";
-
 import { useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 import { firestoreUtils } from "@/lib/firebaseUtils";
+import { useRouter } from "next/navigation";
 
 export default function InvitePage() {
+    const router = useRouter();
     useEffect(() => {
         const auth = getAuth();
-
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
         if (!user) {
             alert("ログインしていません");
+            router.push("/login");
             return;
         }
 
@@ -75,6 +76,7 @@ export default function InvitePage() {
             });
 
             alert("グループに参加しました！");
+            router.push("/");
 
         } catch (err) {
             console.error(err);
@@ -85,5 +87,5 @@ export default function InvitePage() {
         return () => unsubscribe();
     }, []);
 
-    return <div>グループに参加しています…</div>;
+    return <div className="text-4xl">Now Loading...</div>;
 }
