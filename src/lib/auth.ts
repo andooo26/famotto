@@ -26,10 +26,11 @@ export const signInWithGoogle = async () => {
         const googleName = user.displayName || '';
         const isNewUser = !userDoc;
         const needsNameUpdate = !userDoc || !userDoc.name || userDoc.name.trim() === '';
-        const groupId = crypto.randomUUID();
+        
         
         // 新規ユーザーの場合、createdAtとname, uidをuid/フィールドに追加, Googleのアイコンを設定
         if (isNewUser) {
+          const groupId = crypto.randomUUID();
           const userData: any = {
             uid: user.uid,
             createdAt: serverTimestamp(),
