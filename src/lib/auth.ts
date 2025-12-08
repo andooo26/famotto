@@ -34,8 +34,6 @@ export const signInWithGoogle = async () => {
             uid: user.uid,
             createdAt: serverTimestamp(),
             groupId: groupId,
-            //追記
-            iconUrl: user.photoURL || '',
           };
           if (googleName) {
             userData.name = googleName;
@@ -51,13 +49,33 @@ export const signInWithGoogle = async () => {
           };
           await firestoreUtils.setDocument('groups', groupId, groupData);
           
-          // Googleアカウントのアイコンをに保存
+          // GoogleアカウントのアイコンをFirebase Storageに保存し、URLをFirestoreに保存
           if (user.photoURL) {
             try {
-              const response = await fetch(user.photoURL);
+              // サイズ指定
+              const iconUrlWithSize = user.photoURL.includes('?') 
+                ? `${user.photoURL}&sz=1024` 
+                : `${user.photoURL}?sz=1024`;
+              
+              const response = await fetch(iconUrlWithSize, {
+                method: 'GET',
+                headers: {
+                  'Accept': 'image/*',
+                },
+                redirect: 'follow',
+              });
+              
+              // Content-Typeを確認
+              const contentType = response.headers.get('content-type');
+              if (!contentType || !contentType.startsWith('image/')) {
+                throw new Error(`${contentType}`);
+              }
+              
               const blob = await response.blob();
               const storageRef = ref(storage, `users/${user.uid}/icon.png`);
-              await uploadBytes(storageRef, blob);
+              await uploadBytes(storageRef, blob, {
+                contentType: contentType || 'image/png',
+              });
               const iconUrl = await getDownloadURL(storageRef);
               await firestoreUtils.setDocument('users', user.uid, {
                 iconUrl: iconUrl,
