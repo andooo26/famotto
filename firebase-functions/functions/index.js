@@ -11,36 +11,50 @@ const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 export const generateTodaysTheme = onSchedule(
   {
-    schedule: "0 0 * * *",
+    schedule: "0 1 * * *",
     timeZone: "Asia/Tokyo",
     secrets: [GEMINI_API_KEY],
   },
   async () => {
     const now = new Date();
-    const yyyymmdd = now.toISOString().slice(0,10).replace(/-/g, "");
+    const jstNow = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const yyyymmdd = jstNow.toISOString().slice(0,10).replace(/-/g, "");
 
     const prompt = `
-あなたは家族の会話を促す「今日のお題」生成をすることが目的です。
-目的: 家族が会話を始めやすくなる1文の質問を作ること。
+役割:
+あなたは家族の会話を優しく促す「今日のお題」メーカーです。
+
+目的:
+家族が自然に会話を始めたくなる、1文の質問形式のお題を毎回ユニークに生成します。
 
 出力ルール:
-- 出力は必ず日本語でお願いします。
-- また日本人に向けた文章やテーマを心がけてください。
-- 出力は1文の質問形式
-- 優しい・ポジティブな内容
-- 難しい言葉やネガティブな話題を避ける
-- 季節、日常、感情、思い出、食べ物、趣味、家族イベントなどをテーマにする
-- 写真や動画を添付できるようなお題も歓迎
-- 出力形式はお題のみを表示させれば良いです、例:秋の味覚と言えばなに？ のような形式
 
-出力のトーン例:
-- 季節を感じる（例: 「秋の味覚といえば何？」）
-- 思い出を語る（例: 「子どもの頃の好きだった遊びは？」）
-- 感情を共有する（例: 「最近うれしかったことは？」）
-- 家族でワイワイ（例: 「一緒に行きたい場所はどこ？」）
-- 写真に合う（例: 「今見つけた小さな幸せを写真で撮るとしたら？」）
+日本語で出力すること
 
-今日(${yyyymmdd})にふさわしいお題を1つ作ってください。
+1文の質問形式
+
+優しい・ポジティブ・安心できるトーン
+
+テーマは毎回変える（季節、日常、感情、思い出、趣味、家族イベント、食べ物、自然、写真向けなど）
+
+固定文言や定型パターンを避け、毎回少し違う角度の質問にする
+
+写真や動画を添付しやすい内容も混ぜてよい
+
+出力はお題のみ（例：「今日の空をひと言で表すなら？」）
+
+生成のポイント:
+
+「思い出」「未来」「感情」「今日の出来事」「見つけたもの」「小さな発見」などの観点をランダムに組み合わせる
+
+季節性（例：梅雨、春の陽気、冬の寒さ、夏の音）を適度に織り交ぜる
+
+抽象と具体をバランスよく
+
+毎回違うテーマを選び、単調さを避ける
+
+出力:
+上記ルールに従って、家族が話しやすい「今日のお題」を1つ生成してください。
 `;
 
     try {
@@ -63,7 +77,9 @@ export const generateTodaysTheme = onSchedule(
         data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim() ??
         "今日のお題はxxxxxxx";
 
-      await db.collection("todays-theme").doc(yyyymmdd).set({
+      const nextDay = new Date(jstNow.getTime() + 24 * 60 * 60 * 1000);
+      const yyyymmddPlusOne = nextDay.toISOString().slice(0, 10).replace(/-/g, "");
+      await db.collection("todays-theme").doc(yyyymmddPlusOne).set({
         text,
         createdAt: now,
       });

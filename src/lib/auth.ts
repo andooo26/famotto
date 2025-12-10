@@ -54,8 +54,8 @@ export const signInWithGoogle = async () => {
             try {
               // サイズ指定
               const iconUrlWithSize = user.photoURL.includes('?') 
-                ? `${user.photoURL}&sz=1024` 
-                : `${user.photoURL}?sz=1024`;
+                ? `${user.photoURL}&sz=512` 
+                : `${user.photoURL}?sz=512`;
               
               const response = await fetch(iconUrlWithSize, {
                 method: 'GET',
