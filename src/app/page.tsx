@@ -15,6 +15,8 @@ interface DiaryEntry {
   uid: string;
   mediaUrl?: string;
   timestamp: { toDate: () => Date }; // Firestore Timestampの簡易的な型
+  userName?: string;
+  userIconUrl?: string;
 }
 // --- ヘルパーコンポーネント: メディア表示 ---
 const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
@@ -49,33 +51,57 @@ export default function HomePage() {
 
   // 日記取得
   useEffect(() => {
-    if (user) {
-      const fetchDiaries = async () => {
-        setDataLoading(true);
-        const q = query(collection(db, 'diary'), orderBy('timestamp', 'desc'));
-        try {
-          const querySnapshot = await getDocs(q);
-          const fetchedDiaries: DiaryEntry[] = [];
-          querySnapshot.forEach((doc) => {
-            const data = doc.data();
-            fetchedDiaries.push({
-              id: doc.id,
-              title: data.title,
-              content: data.content,
-              uid: data.uid,
-              mediaUrl: data.mediaUrl,
-              timestamp: data.timestamp,
-            });
-          });
-          setDiaries(fetchedDiaries);
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setDataLoading(false);
-        }
-      };
-      fetchDiaries();
-    }
+    if (!user) return;
+
+    const fetchDiaries = async () => {
+      setDataLoading(true);
+
+      try {
+        //users を取得して userMap を作る
+        const usersSnap = await getDocs(collection(db, "users"));
+        const userMap: Record<string, { name: string; iconUrl: string }> = {};
+
+        usersSnap.forEach((u) => {
+          const data = u.data() as any;
+          userMap[u.id] = {
+            name: data.name || "不明なユーザー",
+            iconUrl: data.iconUrl || "/emoji.png" // なければデフォルト画像
+          };
+        });
+
+        //diary を取得する
+        const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
+        const diarySnap = await getDocs(q);
+
+        const fetchedDiaries: DiaryEntry[] = diarySnap.docs.map((docSnap) => {
+          const data = docSnap.data() as any;
+          const userData = userMap[data.uid] || {
+            name: "不明なユーザー",
+            iconUrl: "/emoji.png",
+          };
+
+          return {
+            id: docSnap.id,
+            title: data.title,
+            content: data.content,
+            uid: data.uid,
+            mediaUrl: data.mediaUrl,
+            timestamp: data.timestamp,
+            userName: userData.name,
+            userIconUrl: userData.iconUrl,
+          };
+        });
+
+        setDiaries(fetchedDiaries);
+
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setDataLoading(false);
+      }
+    };
+
+    fetchDiaries();
   }, [user]);
 
   // 共有ボタン処理
@@ -100,7 +126,7 @@ export default function HomePage() {
     }
   };
 
-  // --- 条件分岐はここで行う ---
+  // 条件分岐はここで行う 
   if (loading) return <div>Loading...</div>;
   if (!user) return <div>ログインが必要です。</div>;
   if (dataLoading) return <div>ロード中...</div>;
@@ -141,7 +167,6 @@ export default function HomePage() {
       </header>
 
       {/* 日記部分 */}
-      {/* メインコンテンツ: CSSクラス 'diary-card' を使用 */}
       <main className="diary-card">
         <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿 📝</h1>
 
@@ -150,18 +175,23 @@ export default function HomePage() {
         )}
 
         {diaries.map((diary) => (
-          // .diary-card > div にスタイルが適用される
+
           <div key={diary.id}>
 
-            {/* Card Header (投稿者/アイコン) */}
+            {/* 投稿者/アイコン */}
             <div className="card-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
-              <img src="/emoji.png" alt="ユーザーアイコン" className="icon" style={{ width: '24px', height: '24px', marginRight: '8px' }} />
+              <img
+                src={diary.userIconUrl}
+                alt={diary.userName}
+                className="icon"
+                style={{ width: '24px', height: '24px', marginRight: '8px', borderRadius: '50%' }}
+              />
               <span className="username" style={{ fontWeight: 'bold', color: '#1da1f2' }}>
-                @{diary.uid.substring(0, 8)}...
+                {diary.userName}
               </span>
             </div>
 
-            {/* Card Content (タイトル/本文/メディア) */}
+            {/* タイトル/本文/メディア*/}
             <div className="card-content">
               <h3 style={{ fontSize: '1.1em', margin: '5px 0' }}>{diary.title}</h3>
               <p>{diary.content}</p>
@@ -173,7 +203,7 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* Card Footer (日時/アクションボタン) */}
+            {/* 日時/アクションボタン */}
             <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
               <p style={{ fontSize: '0.8em', color: '#657786' }}>
                 投稿日時: {diary.timestamp.toDate().toLocaleString()}

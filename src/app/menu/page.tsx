@@ -20,6 +20,7 @@ interface DiaryWithUser extends DiaryEntry {
   userIconUrl: string;
 }
 
+// メディア表示コンポーネント
 const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   if (!mediaUrl) return null;
 
@@ -34,13 +35,14 @@ const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   return null;
 };
 
+// メインコンポーネント
 export default function MenuPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [diaries, setDiaries] = useState<DiaryWithUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
 
-  // ▼ 追加：ユーザーリストと選択されたユーザー
+  //ユーザーリストと選択されたユーザー
   const [selectedUser, setSelectedUser] = useState<string>("all");
   const [userList, setUserList] = useState<{ uid: string; name: string }[]>([]);
 
@@ -53,33 +55,34 @@ export default function MenuPage() {
   useEffect(() => {
     if (!user) return;
 
-   const fetchDiariesWithUser = async () => {
+    const fetchDiariesWithUser = async () => {
       setDataLoading(true);
       try {
-        
-        // 1. 【高速化】ユーザー情報を一度に取得し、マップに整理 (1回の読み取り)
+
+        //  ユーザー情報を一括取得 
         const usersSnap = await getDocs(collection(db, "users"));
         const userMap: Record<string, { name: string; iconUrl: string }> = {};
-        
+
         const users = usersSnap.docs.map(u => {
           const data = u.data() as any;
-          // アイコンURLがない場合はフォールバックパスを使用
+          // アイコンURLがない場合
           const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "" };
           userMap[u.id] = userInfo;
           return { uid: u.id, name: userInfo.name };
         });
         setUserList(users);
 
-        // 2. 日記を一括取得 (1回の読み取り)
+        // 日記を一括取得 
         const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
         const snapshot = await getDocs(q);
 
-        // 3. 【結合】取得した日記とユーザー情報をメモリ内で結合（追加の読み取りなし）
+        // ユーザー情報を結合
         const diariesWithUser: DiaryWithUser[] = snapshot.docs.map(docSnap => {
           const data = docSnap.data() as DiaryEntry;
+          
           // マップからユーザー情報を参照
           const userData = userMap[data.uid] || { name: "不明なユーザ", iconUrl: "" };
-          
+
           return {
             ...data,
             id: docSnap.id,
@@ -99,6 +102,7 @@ export default function MenuPage() {
     fetchDiariesWithUser();
   }, [user]);
 
+  // 共有機能
   const handleShare = () => {
     if (navigator.share) {
       navigator.share({
@@ -115,14 +119,13 @@ export default function MenuPage() {
     return <div>ロード中...</div>;
   }
 
-  // ---------------------
-  // ▼ 選択ユーザーで絞り込み
-  // ---------------------
+  // ユーザー選択による絞り込み
   const filteredDiaries =
     selectedUser === "all"
       ? diaries
       : diaries.filter((d) => d.uid === selectedUser);
 
+  // JSXのレンダリング
   return (
     <div>
       <header className="header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
@@ -133,7 +136,7 @@ export default function MenuPage() {
       <main className="diary-card" style={{ padding: '10px' }}>
         <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿</h1>
 
-        {/* ▼ 追加：ユーザーで絞り込み UI */}
+        {/* ユーザーで絞り込み */}
         <div style={{ marginBottom: "15px" }}>
           <label style={{ marginRight: "8px" }}>ユーザーで絞り込み：</label>
           <select
@@ -155,7 +158,7 @@ export default function MenuPage() {
         {filteredDiaries.length === 0 && (
           <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>
         )}
-
+        {/*日記リストの表示*/}
         {filteredDiaries.map((diary) => (
           <div key={diary.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0' }}>
             <div className="card-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
