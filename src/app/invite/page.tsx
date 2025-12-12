@@ -6,82 +6,51 @@ import { useRouter } from "next/navigation";
 
 export default function InvitePage() {
     const router = useRouter();
+
     useEffect(() => {
         const auth = getAuth();
+
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
-        if (!user) {
-            alert("ログインしていません");
-            router.push("/login");
-            return;
-        }
-
-        const uid = user.uid;
-        const newGroupId = new URLSearchParams(window.location.search).get("id");
-
-        if (!newGroupId) return;
-
-        try {
-            // == users/{uid} を取得 ==========================
-            const userDoc = await firestoreUtils.getDocument("users", uid);
-            if (!userDoc) {
-            alert("ユーザーが存在しません");
-            return;
+            if (!user) {
+                alert("ログインしていません");
+                router.push("/login");
+                return;
             }
 
-            const oldGroupId = userDoc.groupId;
+            const uid = user.uid;
+            const newGroupId = new URLSearchParams(window.location.search).get("id");
 
-            // == oldGroupId の脱退 ==========================
-            if (oldGroupId && oldGroupId !== newGroupId) {
-            const oldGroup = await firestoreUtils.getDocument("groups", oldGroupId);
+            if (!newGroupId) {
+                alert("groupId がありません");
+                return;
+            }
 
-            if (oldGroup) {
-                // Set を使って確実に削除
-                const setMembers = new Set(oldGroup.members || []);
-                setMembers.delete(uid);
-
-                const updatedMembers = Array.from(setMembers);
-
-                if (updatedMembers.length === 0) {
-                // メンバーゼロ → グループ削除
-                await firestoreUtils.deleteDocument("groups", oldGroupId);
-                console.log(`グループ ${oldGroupId} を削除しました（0人）`);
-                } else {
-                // メンバー更新のみ
-                await firestoreUtils.updateDocument("groups", oldGroupId, {
-                    members: updatedMembers,
-                });
+            try {
+                // === グループ情報を取得 ==========
+                const groupDoc = await firestoreUtils.getDocument("groups", newGroupId);
+                if (!groupDoc) {
+                    alert("グループが存在しません");
+                    return;
                 }
+
+                // === joinRequests にフィールド追加 ==========
+                const joinRequests = groupDoc.joinRequests || {};
+
+                joinRequests[uid] = {
+                    uid,
+                    requestedAt: new Date(),
+                };
+
+                await firestoreUtils.updateDocument("groups", newGroupId, {
+                    joinRequests,
+                });
+
+                alert("参加申請を送りました！リーダーの承認をお待ちください。");
+                router.push("/");
+            } catch (err) {
+                console.error(err);
+                alert("エラーが発生しました");
             }
-            }
-
-            // == newGroupId の参加 ==========================
-            const newGroup = await firestoreUtils.getDocument("groups", newGroupId);
-            if (!newGroup) {
-            alert("参加先のグループが存在しません");
-            return;
-            }
-
-            // Set を使って重複なく追加
-            const newSet = new Set(newGroup.members || []);
-            newSet.add(uid);
-
-            await firestoreUtils.updateDocument("groups", newGroupId, {
-            members: Array.from(newSet),
-            });
-
-            // == user の groupId を更新 =====================
-            await firestoreUtils.updateDocument("users", uid, {
-            groupId: newGroupId,
-            updatedAt: new Date(),
-            });
-
-            alert("グループに参加しました！");
-            router.push("/");
-
-        } catch (err) {
-            console.error(err);
-            alert("エラーが発生しました");
-        }
         });
 
         return () => unsubscribe();
