@@ -1,169 +1,283 @@
 'use client';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import Image from 'next/image';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
-// Firebase Storageの初期化
 const storage = getStorage();
 
+// 一意のID生成
 const generateUniqueId = (): string => {
-  // 現在のタイムスタンプ（ミリ秒）とランダムな数値を組み合わせる
-  const timestamp = Date.now().toString(36);//今の時刻を36進数に変換→timestampへ
-  const randomPart = Math.random().toString(36).substring(2, 8);//ランダムな部分を生成
-  return timestamp + randomPart;//両方を結合して一意のIDを生成
+  const timestamp = Date.now().toString(36);
+  const randomPart = Math.random().toString(36).substring(2, 8);
+  return timestamp + randomPart;
 };
-// --- メインコンポーネント ---
-export default function DiaryForm() {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [file, setFile] = useState<File | null>(null); // 選択されたファイル
-  // const [uploadProgress, setUploadProgress] = useState(0); // ★ コメントアウト
-  const [isUploading, setIsUploading] = useState(false); // アップロード中かどうか
 
-  /** 1. Storageへのファイルアップロード処理*/
+//音声認識
+const SpeechRecognition =
+  typeof window !== "undefined"
+    ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    : null;
+
+//コンポーネント
+export default function DiaryForm() {
+  const [content, setContent] = useState('');
+  const [file, setFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
+  const startSpeechRecognition = () => {
+    if (!SpeechRecognition) {
+      alert("音声入力非対応");
+      return;
+    }
+
+    if (!recognitionRef.current) {
+      const recognition = new SpeechRecognition();
+      recognition.lang = "ja-JP";
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = (event: any) => {
+        let text = "";
+        for (let i = 0; i < event.results.length; i++) {
+          text += event.results[i][0].transcript;
+        }
+        setContent(prev => prev + text);
+      };
+
+      recognition.onend = () => {
+        setIsRecording(false);
+      };
+
+      recognitionRef.current = recognition;
+    }
+
+    recognitionRef.current.start();
+    setIsRecording(true);
+  };
+
+  const stopSpeechRecognition = () => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    setIsRecording(false);
+  };
+
+  // input type="file" を非表示にしてボタンで開く
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  /* Storageへのアップロード */
   const uploadFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
-      setIsUploading(true); // ★ アップロード開始フラグは維持
+      setIsUploading(true);
 
-      // ファイル名の一意化 (ユーザーIDとユニークなIDを使用)
       const user = auth.currentUser;
-      // ファイル拡張子の取得
       const fileExtension = file.name.split('.').pop();
-
-      // generateUniqueId() を使用
       const uniqueId = generateUniqueId();
-      // ファイル名の生成
       const fileName = `${user?.uid}/${uniqueId}.${fileExtension}`;
-      // Storage参照の作成
       const storageRef = ref(storage, `diary_media/${fileName}`);
-      // アップロードタスクの開始
       const uploadTask = uploadBytesResumable(storageRef, file);
-
-      // 進捗、エラー、完了時の処理を設定
-      uploadTask.on('state_changed',
-        (snapshot) => {
-          
-        },
-        (error) => {
-          // エラー処理
+      // アップロードの進行状況を確認
+      uploadTask.on(
+        'state_changed',
+        () => { },
+        () => {
           setIsUploading(false);
-          console.error("アップロードエラー:", error);
           reject('ファイルアップロードに失敗しました');
         },
         () => {
-          // 完了処理 (ダウンロードURLの取得)
           getDownloadURL(uploadTask.snapshot.ref)
             .then((downloadURL) => {
-              setIsUploading(false); // ★ 完了時にフラグを解除
+              setIsUploading(false);
               resolve(downloadURL);
             })
-            .catch((error) => {
+            .catch(() => {
               setIsUploading(false);
-              console.error("URL取得エラー:", error);
-              reject('ダウンロードURLの取得に失敗しました');
+              reject('ダウンロードURL取得失敗');
             });
         }
       );
     });
   };
 
-  /**2.フォーム送信処理 (ファイルアップロードとFirestore保存を含む)**/
-  const handleSubmit = async (e: React.FormEvent) => {e.preventDefault();
-    const user = auth.currentUser;//Firebase Authenticationの現在のユーザー取得
-    // ユーザーがログインしていない場合は処理を中断
-    if (!user) {
-      alert('ログインしてください');
+  /* 日記投稿 */
+  const handleSubmit = async () => {
+    const user = auth.currentUser;
+    if (!user) return alert('ログインしてください');
+
+    if (!content.trim()) {
+      alert('内容を入力してください');
       return;
     }
-    // タイトルと本文のバリデーション
-    if (!title.trim() || !content.trim()) {
-      alert('タイトルと本文を入力してください');
-      return;
-    }
-    // 既にアップロード中の場合は処理を中断
-    if (isUploading) {
-      alert('ファイルアップロード中です。しばらくお待ちください。');
-      return;
-    }
-    // ファイルアップロードとFirestore保存
+    if (isUploading) return alert('アップロード中');
+
     let mediaUrl: string | null = null;
 
-     // ファイルが選択されていればアップロードを実行
     try {
-      if (file) {
-        mediaUrl = await uploadFile(file);
-      }
+      if (file) mediaUrl = await uploadFile(file);
 
-      // Firestoreに日記データを保存
       const docRef = await addDoc(collection(db, 'diary'), {
-        title,
         content,
-        // mediaUrl があれば保存
-        mediaUrl: mediaUrl,
+        mediaUrl,
         uid: user.uid,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
       });
 
       alert('日記を追加しました: ' + docRef.id);
-      // フォームのリセット
-      setTitle('');
+
       setContent('');
-      // ファイル選択をリセット
-      setFile(null); 
-    } catch (err) {
-      console.error(err);
+      setFile(null);
+    } catch (e) {
       alert('書き込みに失敗しました');
     }
   };
 
-  /** 3.ファイル選択時の処理 **/
+  /* ファイル選択 */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {//ファイルが選択された場合
+    if (e.target.files && e.target.files[0]) {
       setFile(e.target.files[0]);
     } else {
       setFile(null);
     }
   };
 
-// --- JSX部分 ---
+
+
   return (
-    <form onSubmit={handleSubmit}>
-      <input
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        placeholder="タイトル"
-        required
-      />
-      <br />
-      <textarea
-        value={content}
-        onChange={e => setContent(e.target.value)}
-        placeholder="本文"
-        required
-      />
-      <br />
+    <main className="">
+      <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto">
 
-      {/* ファイル選択インプットの追加 */}
-      <input
-        type="file"
-        accept="image/*,video/*" // 画像と動画のみを受け付ける
-        onChange={handleFileChange}
-      />
+       {/* 内容 */}
+<div className="mb-6">
+  <label className="block text-2xl font-bold mb-2">内容</label>
 
-      {/* 選択されたファイル名の表示 */}
-      {file && <p>選択中のファイル: **{file.name}**</p>}
+  <textarea
+    value={content}
+   onChange={(e) => {
+    const v = e.target.value;
+    //15文字制限
+    if (v.length <= 15) {
+      setContent(v);
+    }
+  }}
+    className="
+      text-xl 
+      border 
+      border-gray-300
+      p-3 
+      rounded-xl 
+      w-full 
+      h-15
+      focus:outline-none 
+      focus:ring-2 
+      focus:ring-blue-400 
+      shadow-sm 
+      transition
+    "
+    placeholder="日記の内容を入力"
+  />
+  <div className="text-right text-gray-500 text-sm mt-1">
+  {content.length}/15
+</div>
+</div>
 
-      {/* アップロード進捗の表示 (アップロード中の場合のみ) */}
-      {isUploading && (
-        <div>
-          <p>アップロード中...</p> 
+
+        {/* 選択されたファイル */}
+        {file && (
+          <p className="text-xl mb-3 text-700">
+            選択中のファイル：{file.name}
+          </p>
+        )}
+
+        {/* file input（非表示） */}
+        <input
+          type="file"
+          accept="image/*,video/*"
+          ref={fileInputRef}
+          className="hidden"
+          onChange={handleFileChange}
+          hidden
+        />
+
+        {/* アップロード中 */}
+        {isUploading && <p className="text-red-500 mb-3">アップロード中</p>}
+        {/*プレビュー*/}
+        {file && (
+          <div className="mt-4 w-full flex justify-center">
+            <div className="max-h-40 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+              {file.type.startsWith('image/') && (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
+                  className="max-w-full h-auto rounded"
+                />
+              )}
+
+              {file.type.startsWith('video/') && (
+                <video
+                  src={URL.createObjectURL(file)}
+                  controls
+                  className="w-60 rounded"
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex justify-evenly fixed bottom-24 left-0 w-full px-10 bg-white z-10">
+          {/* ボタン3つ */}
+          <div className="flex justify-evenly">
+            {/* 画像・動画追加 */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              disabled={isRecording}
+            >
+              <div className="flex flex-col items-center">
+                <Image src="/upload.jpg" alt="" width={50} height={60} />
+                <span>動画/画像　</span>
+              </div>
+            </button>
+
+            {/* 音声認識*/}
+            <button
+              type="button"
+              onClick={() => {
+                if (isRecording) {
+                  stopSpeechRecognition();
+                } else {
+                  startSpeechRecognition();
+                }
+              }}
+            >
+              <div className="flex flex-col items-center">
+                <Image src="/mic.png" alt="" width={50} height={60} />
+                <span>{isRecording ? "録音停止　" : "音声入力　"}</span>
+              </div>
+            </button>
+
+            {/* 録音中*/}
+            {isRecording && (
+              <p className="text-red-600 text-center mt-2">録音中…</p>
+            )}
+
+            {/* 投稿 */}
+            <button
+              onClick={handleSubmit}
+              type="button"
+              disabled={isRecording}>
+
+              <div className="flex flex-col items-center">
+                <Image src="/check.png" alt="" width={50} height={60} />
+                <span>投稿</span>
+              </div>
+            </button>
+          </div>
         </div>
-      )}
-    {/* --- 送信ボタン --- */}
-      <button type="submit" disabled={isUploading || !title.trim() || !content.trim()}> {/*アップロード中または入力不備時は無効化*/}
-        {isUploading ? 'アップロード中...' : '追加'}
-      </button>
-    </form>
+      </div>
+    </main>
   );
 }
