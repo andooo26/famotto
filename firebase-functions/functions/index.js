@@ -91,3 +91,75 @@ export const generateTodaysTheme = onSchedule(
   }
 );
 
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import * as admin from "firebase-admin";
+import nodemailer from "nodemailer";
+
+export const sendJoinRequestMail = onDocumentUpdated(
+  "groups/{groupId}",
+  async (event) => {
+
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+
+    const beforeReq = before.joinRequests || {};
+    const afterReq = after.joinRequests || {};
+
+    // 新しく追加された uid を検出
+    const addedUids = Object.keys(afterReq).filter(
+      (uid) => !beforeReq[uid]
+    );
+    if (addedUids.length === 0) return;
+
+    const requestUid = addedUids[0];
+
+    // 🌟 ① users/{uid} からユーザーネーム取得
+    const userSnap = await admin
+      .firestore()
+      .collection("users")
+      .doc(requestUid)
+      .get();
+
+    const userName =
+      userSnap.exists ? userSnap.data()?.name ?? "不明なユーザー" : "不明なユーザー";
+
+    // 管理者 uid（members[0]）
+    const leaderUid = after.members?.[0];
+    if (!leaderUid) return;
+
+    // 管理者のメール取得
+    const leader = await admin.auth().getUser(leaderUid);
+    const leaderEmail = leader.email;
+    if (!leaderEmail) return;
+
+    // メール送信設定
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_ACCOUNT,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    const approveUrl =
+      `https://your-domain.com/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
+
+    await transporter.sendMail({
+      from: process.env.MAIL_ACCOUNT,
+      to: leaderEmail,
+      subject: "💌 グループ参加申請が届いたよ",
+      text: `
+      ${userName} さんがグループ参加を希望しています！
+
+      ▼ 承認はこちら
+      ${approveUrl}`,
+    });
+
+    console.log("承認メール送信完了💖", {
+      groupId: event.params.groupId,
+      requestUid,
+      userName,
+    });
+  }
+);
