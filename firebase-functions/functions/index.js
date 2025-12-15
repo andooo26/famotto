@@ -2,6 +2,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
+import { getAuth } from "firebase-admin/auth";
 // import fetch from "node-fetch";
 
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
@@ -11,10 +12,13 @@ import nodemailer from "nodemailer";
 //   admin.initializeApp();
 // }
 
-initializeApp();
+// initializeApp();
+const app = initializeApp();
 
-const db = getFirestore();
 // const db = admin.firestore();
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 export const generateTodaysTheme = onSchedule(
@@ -131,8 +135,12 @@ export const sendJoinRequestMail = onDocumentUpdated(
     const requestUid = addedUids[0];
 
     // 🌟 ① users/{uid} からユーザーネーム取得
-    const userSnap = await admin
-      .firestore()
+    // const userSnap = await admin
+    //   .firestore()
+    //   .collection("users")
+    //   .doc(requestUid)
+    //   .get();
+    const userSnap = await db
       .collection("users")
       .doc(requestUid)
       .get();
@@ -145,7 +153,8 @@ export const sendJoinRequestMail = onDocumentUpdated(
     if (!leaderUid) return;
 
     // 管理者のメール取得
-    const leader = await admin.auth().getUser(leaderUid);
+    // const leader = await admin.auth().getUser(leaderUid);
+    const leader = await auth.getUser(leaderUid);
     const leaderEmail = leader.email;
     if (!leaderEmail) return;
 
@@ -159,12 +168,12 @@ export const sendJoinRequestMail = onDocumentUpdated(
     });
 
     const approveUrl =
-      `https://your-domain.com/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
+      `localhost:3000/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
 
     await transporter.sendMail({
       from: process.env.MAIL_ACCOUNT,
       to: leaderEmail,
-      subject: "💌 グループ参加申請が届いたよ",
+      subject: "グループ参加申請が届いたよ",
       text: `
       ${userName} さんがグループ参加を希望しています！
 
@@ -172,7 +181,7 @@ export const sendJoinRequestMail = onDocumentUpdated(
       ${approveUrl}`,
     });
 
-    console.log("承認メール送信完了💖", {
+    console.log("承認メール送信完了", {
       groupId: event.params.groupId,
       requestUid,
       userName,
