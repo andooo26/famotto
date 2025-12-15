@@ -2,11 +2,15 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import fetch from "node-fetch";
+import { getAuth } from "firebase-admin/auth";
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import nodemailer from "nodemailer";
 
-initializeApp();
+const app = initializeApp();
 
-const db = getFirestore();
+const db = getFirestore(app);
+const auth = getAuth(app);
+
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 export const generateTodaysTheme = onSchedule(
@@ -88,5 +92,83 @@ export const generateTodaysTheme = onSchedule(
     } catch (err) {
       console.error("エラーが発生:", err);
     }
+  }
+);
+
+
+
+
+
+
+export const sendJoinRequestMail = onDocumentUpdated(
+  "groups/{groupId}",
+  async (event) => {
+
+    console.log("functions開始")
+    const before = event.data?.before.data();
+    const after = event.data?.after.data();
+    if (!before || !after) return;
+
+    const beforeReq = before.joinRequests || {};
+    const afterReq = after.joinRequests || {};
+
+    //joinRequestsに追加されてたら発火
+    if (Object.keys(beforeReq).length === Object.keys(afterReq).length) {
+      return;
+    }
+
+    //リクエストのuidを検出
+    const addedUids = Object.keys(afterReq).filter(
+      (uid) => !beforeReq[uid]
+    );
+    if (addedUids.length === 0) return;
+
+    const requestUid = addedUids[0];
+
+    const userSnap = await db
+      .collection("users")
+      .doc(requestUid)
+      .get();
+
+    const userName =
+      userSnap.exists ? userSnap.data()?.name ?? "不明なユーザー" : "不明なユーザー";
+
+    // 管理者uid members[0]）
+    const leaderUid = after.members?.[0];
+    if (!leaderUid) return;
+
+    //管理者のメール取得
+    const leader = await auth.getUser(leaderUid);
+    const leaderEmail = leader.email;
+    if (!leaderEmail) return;
+
+    //メール送信設定
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.MAIL_ACCOUNT,
+        pass: process.env.MAIL_PASSWORD,
+      },
+    });
+
+    const approveUrl =
+      `localhost:3000/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
+
+    await transporter.sendMail({
+      from: process.env.MAIL_ACCOUNT,
+      to: leaderEmail,
+      subject: "グループ参加申請が届いたよ",
+      text: `
+      ${userName} さんがグループ参加を希望しています！
+
+      ▼ 承認はこちら
+      ${approveUrl}`,
+    });
+
+    console.log("承認メール送信完了", {
+      groupId: event.params.groupId,
+      requestUid,
+      userName,
+    });
   }
 );
