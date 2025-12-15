@@ -2,11 +2,19 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
-import fetch from "node-fetch";
+// import fetch from "node-fetch";
+
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import nodemailer from "nodemailer";
+// import * as admin from "firebase-admin";  
+// if (!admin.apps.length) {
+//   admin.initializeApp();
+// }
 
 initializeApp();
 
 const db = getFirestore();
+// const db = admin.firestore();
 const GEMINI_API_KEY = defineSecret("GEMINI_API_KEY");
 
 export const generateTodaysTheme = onSchedule(
@@ -91,20 +99,28 @@ export const generateTodaysTheme = onSchedule(
   }
 );
 
-import { onDocumentUpdated } from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
-import nodemailer from "nodemailer";
+
+
+
+
 
 export const sendJoinRequestMail = onDocumentUpdated(
   "groups/{groupId}",
   async (event) => {
 
+    console.log("functions開始")
     const before = event.data?.before.data();
     const after = event.data?.after.data();
     if (!before || !after) return;
 
     const beforeReq = before.joinRequests || {};
     const afterReq = after.joinRequests || {};
+
+
+     // ✅ joinRequests 自体が変わってなければ即 return
+    if (Object.keys(beforeReq).length === Object.keys(afterReq).length) {
+      return;
+    }
 
     // 新しく追加された uid を検出
     const addedUids = Object.keys(afterReq).filter(
