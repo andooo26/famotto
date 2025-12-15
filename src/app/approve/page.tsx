@@ -32,7 +32,7 @@ export default function ApprovePage() {
                 alert("グループが存在しません");
                 return;
             }
-
+            
             //管理者チェック
             if (group.members?.[0] !== leaderUid) {
                 alert("権限がありません");
@@ -78,7 +78,7 @@ export default function ApprovePage() {
                 groupId,
                 updatedAt: new Date(),
             });
-            alert("承認完了💖");
+            alert("承認しました");
             router.push("/");
         } catch (e) {
             console.error(e);
@@ -87,5 +87,5 @@ export default function ApprovePage() {
         });
         return () => unsub();
     }, []);
-    return <div className="text-3xl">承認処理中だよん…💫</div>;
+    return <div className="text-3xl">承認処理中です...</div>;
 }

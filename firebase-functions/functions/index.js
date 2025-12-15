@@ -3,19 +3,11 @@ import { defineSecret } from "firebase-functions/params";
 import { initializeApp } from "firebase-admin/app";
 import { getFirestore } from "firebase-admin/firestore";
 import { getAuth } from "firebase-admin/auth";
-// import fetch from "node-fetch";
-
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import nodemailer from "nodemailer";
-// import * as admin from "firebase-admin";  
-// if (!admin.apps.length) {
-//   admin.initializeApp();
-// }
 
-// initializeApp();
 const app = initializeApp();
 
-// const db = admin.firestore();
 const db = getFirestore(app);
 const auth = getAuth(app);
 
@@ -120,13 +112,12 @@ export const sendJoinRequestMail = onDocumentUpdated(
     const beforeReq = before.joinRequests || {};
     const afterReq = after.joinRequests || {};
 
-
-     // ✅ joinRequests 自体が変わってなければ即 return
+    //joinRequestsに追加されてたら発火
     if (Object.keys(beforeReq).length === Object.keys(afterReq).length) {
       return;
     }
 
-    // 新しく追加された uid を検出
+    //リクエストのuidを検出
     const addedUids = Object.keys(afterReq).filter(
       (uid) => !beforeReq[uid]
     );
@@ -134,12 +125,6 @@ export const sendJoinRequestMail = onDocumentUpdated(
 
     const requestUid = addedUids[0];
 
-    // 🌟 ① users/{uid} からユーザーネーム取得
-    // const userSnap = await admin
-    //   .firestore()
-    //   .collection("users")
-    //   .doc(requestUid)
-    //   .get();
     const userSnap = await db
       .collection("users")
       .doc(requestUid)
@@ -148,17 +133,16 @@ export const sendJoinRequestMail = onDocumentUpdated(
     const userName =
       userSnap.exists ? userSnap.data()?.name ?? "不明なユーザー" : "不明なユーザー";
 
-    // 管理者 uid（members[0]）
+    // 管理者uid members[0]）
     const leaderUid = after.members?.[0];
     if (!leaderUid) return;
 
-    // 管理者のメール取得
-    // const leader = await admin.auth().getUser(leaderUid);
+    //管理者のメール取得
     const leader = await auth.getUser(leaderUid);
     const leaderEmail = leader.email;
     if (!leaderEmail) return;
 
-    // メール送信設定
+    //メール送信設定
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
