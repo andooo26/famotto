@@ -1,6 +1,7 @@
 'use client';
 import { useState, useRef } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
@@ -22,6 +23,7 @@ const SpeechRecognition =
 
 //コンポーネント
 export default function DiaryForm() {
+  const router = useRouter();
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -119,17 +121,15 @@ export default function DiaryForm() {
     try {
       if (file) mediaUrl = await uploadFile(file);
 
-      const docRef = await addDoc(collection(db, 'diary'), {
+      await addDoc(collection(db, 'diary'), {
         content,
         mediaUrl,
         uid: user.uid,
         timestamp: serverTimestamp(),
       });
 
-      alert('日記を追加しました: ' + docRef.id);
-
-      setContent('');
-      setFile(null);
+      // 投稿完了後、ルートディレクトリに遷移
+      router.push('/');
     } catch (e) {
       alert('書き込みに失敗しました');
     }
