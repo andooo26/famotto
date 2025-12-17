@@ -27,11 +27,11 @@ const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   if (!mediaUrl) return null;
 
   if (/.(jpe?g|png|gif|webp)/i.test(mediaUrl)) {
-    return <img src={mediaUrl} alt="添付画像" style={{ objectFit: 'contain', maxWidth: '100%' }} />;
+    return <img src={mediaUrl} alt="添付画像" style={{ objectFit: 'contain', maxWidth: '70%', maxHeight: '400px', margin: '0 auto', display: 'block' }} />;
   }
 
   if (/.(mp4|mov|webm)/i.test(mediaUrl)) {
-    return <video src={mediaUrl} controls style={{ maxWidth: '100%' }} />;
+    return <video src={mediaUrl} controls style={{ maxWidth: '70%', maxHeight: '400px', margin: '0 auto', display: 'block' }} />;
   }
 
   return null;
