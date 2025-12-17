@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { db, storage } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef } from 'firebase/storage';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 interface DiaryEntry {
   id: string;
@@ -128,10 +130,7 @@ export default function MenuPage() {
   // JSXのレンダリング
   return (
     <div>
-      <header className="header" style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px' }}>
-        <img src="/icon.jpg" alt="プロフィール" style={{ width: 40, height: 40, borderRadius: '50%' }} />
-        <a href="./.."><span>Famotto</span></a>
-      </header>
+      <Header />
 
       <main className="diary-card" style={{ padding: '10px' }}>
         <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿</h1>
@@ -206,6 +205,8 @@ export default function MenuPage() {
           </div>
         ))}
       </main>
+
+      <Footer />
     </div>
   );
 }

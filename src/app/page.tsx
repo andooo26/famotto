@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 interface DiaryEntry {
   id: string;
@@ -137,34 +139,7 @@ export default function HomePage() {
   return (
     <div>
       {/* ヘッダー */}
-      <header className="header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div className="profile-icon">
-            <Image
-              src="/icon.jpg"
-              alt="プロフィール"
-              width={40}
-              height={40}
-              style={{ borderRadius: '50%' }}
-            />
-          </div>
-          <span>Famotto</span>
-        </div>
-        <button
-          onClick={handleSignOut}
-          style={{
-            background: 'none',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            padding: '8px 16px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            color: '#333',
-          }}
-        >
-          ログアウト
-        </button>
-      </header>
+      <Header showLogout={true} onLogout={handleSignOut} />
 
       {/* 日記部分 */}
       <main className="diary-card">
@@ -218,14 +193,7 @@ export default function HomePage() {
       </main>
 
       {/* フッター */}
-      <footer className="footer">
-        <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
-        </a>
-        <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
-        </a>
-        <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
-        </a>
-      </footer>
+      <Footer />
 
     </div>
   );
