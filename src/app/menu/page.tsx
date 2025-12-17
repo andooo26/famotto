@@ -118,7 +118,15 @@ export default function MenuPage() {
   };
 
   if (loading || (user && dataLoading)) {
-    return <div>ロード中...</div>;
+    return (
+      <div>
+        <Header title="日記確認" />
+        <main className="diary-card" style={{ padding: '10px' }}>
+          <div></div>
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   // ユーザー選択による絞り込み

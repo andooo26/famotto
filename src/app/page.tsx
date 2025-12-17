@@ -128,13 +128,34 @@ export default function HomePage() {
     }
   };
 
-  // 条件分岐はここで行う 
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <div>ログインが必要です。</div>;
-  if (dataLoading) return <div>ロード中...</div>;
-
-
-
+  // 条件分岐 
+  if (loading) return (
+    <div>
+      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
+      <main className="diary-card">
+        <div>Loading...</div>
+      </main>
+      <Footer />
+    </div>
+  );
+  if (!user) return (
+    <div>
+      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
+      <main className="diary-card">
+        <div>ログインが必要です。</div>
+      </main>
+      <Footer />
+    </div>
+  );
+  if (dataLoading) return (
+    <div>
+      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
+      <main className="diary-card">
+        <div>ロード中...</div>
+      </main>
+      <Footer />
+    </div>
+  );
 
   return (
     <div>
