@@ -1,32 +1,33 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 
 interface HeaderProps {
-  iconUrl?: string;
+  title?: string;
   showLogout?: boolean;
   onLogout?: () => void;
 }
 
-export default function Header({ iconUrl = "/icon.jpg", showLogout = false, onLogout }: HeaderProps) {
+export default function Header({ title, showLogout = false, onLogout }: HeaderProps) {
   return (
-    <header className="header">
+    <header className="header" style={{ position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <div className="profile-icon">
-          <Image
-            src={iconUrl}
-            alt="プロフィール"
-            width={40}
-            height={40}
-            style={{ borderRadius: '50%' }}
-          />
-        </div>
         <Link href="/">
-          <span>Famotto</span>
+          <span style={{ fontSize: '32px', color: '#e8d4b0' }}>Famotto</span>
         </Link>
       </div>
-      {showLogout && onLogout && (
+      {title && (
+        <div style={{ 
+          position: 'absolute', 
+          left: '50%', 
+          transform: 'translateX(-50%)',
+          fontSize: '24px',
+          color: '#666'
+        }}>
+          {title}
+        </div>
+      )}
+      {showLogout && onLogout ? (
         <button
           onClick={onLogout}
           style={{
@@ -41,6 +42,8 @@ export default function Header({ iconUrl = "/icon.jpg", showLogout = false, onLo
         >
           ログアウト
         </button>
+      ) : (
+        <div style={{ width: '100px' }}></div>
       )}
     </header>
   );

@@ -139,11 +139,10 @@ export default function HomePage() {
   return (
     <div>
       {/* ヘッダー */}
-      <Header showLogout={true} onLogout={handleSignOut} />
+      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
 
       {/* 日記部分 */}
       <main className="diary-card">
-        <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿 📝</h1>
 
         {diaries.length === 0 && (
           <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>

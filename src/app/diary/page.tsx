@@ -14,10 +14,9 @@ export default function DiaryPage() {
 
     return (
         <div>
-            <Header />
+            <Header title="日記追加" />
 
             <main style={{ padding: 20 }}>
-                <h1>日記追加</h1>
                 <DiaryForm />
             </main>
 

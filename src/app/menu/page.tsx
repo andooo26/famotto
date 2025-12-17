@@ -130,10 +130,9 @@ export default function MenuPage() {
   // JSXのレンダリング
   return (
     <div>
-      <Header />
+      <Header title="日記確認" />
 
       <main className="diary-card" style={{ padding: '10px' }}>
-        <h1 style={{ fontSize: '1.8em', marginBottom: '10px' }}>みんなの投稿</h1>
 
         {/* ユーザーで絞り込み */}
         <div style={{ marginBottom: "15px" }}>

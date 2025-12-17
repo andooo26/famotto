@@ -61,13 +61,9 @@ export default function DiaryPage() {
 
     return (
         <div>
-            <Header iconUrl={headerIcon} />
+            <Header title="設定" />
 
             <main className="">
-                <div className='flex  mt-3 pl-10'>
-                    <Image src="/aoption.png" alt="" width={40} height={40} />
-                    <h2 className="text-3xl">設定</h2>
-                </div>
                 <div className="flex flex-col items-center  m-10 bg-white rounded-xl shadow-2xl">
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
