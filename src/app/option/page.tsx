@@ -5,6 +5,8 @@ import './../globals.css';
 import './../../lib/firebase';
 import { firestoreUtils, storageUtils } from './../../lib/firebaseUtils';
 import { getAuth } from 'firebase/auth';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function DiaryPage() {
 
@@ -59,10 +61,7 @@ export default function DiaryPage() {
 
     return (
         <div>
-            <header className="header">
-                <Image src={headerIcon} alt="" width={50} height={40} style={{ borderRadius: '50%', objectFit: "cover" }} />
-                <h1 className="text-5xl">Fammoto</h1>
-            </header>
+            <Header iconUrl={headerIcon} />
 
             <main className="">
                 <div className='flex  mt-3 pl-10'>
@@ -93,11 +92,7 @@ export default function DiaryPage() {
                 </div>
             </main>
 
-            <footer className="footer">
-                <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span></a>
-                <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span></a>
-                <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span></a>
-            </footer>
+            <Footer />
         </div>
     )
 }
