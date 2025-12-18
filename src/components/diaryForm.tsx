@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const storage = getStorage();
@@ -128,12 +128,19 @@ export default function DiaryForm() {
     let mediaUrl: string | null = null;
 
     try {
+      // ユーザーのgroupIdを取得
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const userData = userDocSnap.data() as { groupId?: string } | undefined;
+      const groupId = userData?.groupId;
+
       if (file) mediaUrl = await uploadFile(file);
 
       await addDoc(collection(db, 'diary'), {
         content,
         mediaUrl,
         uid: user.uid,
+        groupId: groupId || null,
         timestamp: serverTimestamp(),
       });
 

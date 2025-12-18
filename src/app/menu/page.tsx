@@ -64,18 +64,35 @@ export default function MenuPage() {
     const fetchDiariesWithUser = async () => {
       setDataLoading(true);
       try {
+        // 現在のユーザーのgroupIdを取得
+        const currentUserDoc = await getDoc(doc(db, "users", user.uid));
+        const currentUserData = currentUserDoc.data() as any;
+        const currentGroupId = currentUserData?.groupId;
 
-        //  ユーザー情報を一括取得 
+        if (!currentGroupId) {
+          console.warn('ユーザーのgroupIdが設定されていません');
+          setDiaries([]);
+          setUserList([]);
+          setDataLoading(false);
+          return;
+        }
+
+        //  ユーザー情報を一括取得（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
-        const userMap: Record<string, { name: string; iconUrl: string }> = {};
+        const userMap: Record<string, { name: string; iconUrl: string; groupId?: string }> = {};
 
-        const users = usersSnap.docs.map(u => {
-          const data = u.data() as any;
-          // アイコンURLがない場合
-          const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "" };
-          userMap[u.id] = userInfo;
-          return { uid: u.id, name: userInfo.name };
-        });
+        const users = usersSnap.docs
+          .filter(u => {
+            const data = u.data() as any;
+            return data.groupId === currentGroupId;
+          })
+          .map(u => {
+            const data = u.data() as any;
+            // アイコンURLがない場合
+            const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "" };
+            userMap[u.id] = userInfo;
+            return { uid: u.id, name: userInfo.name };
+          });
         setUserList(users);
 
         // 日記を一括取得 
@@ -83,19 +100,22 @@ export default function MenuPage() {
         const snapshot = await getDocs(q);
 
         // ユーザー情報を結合
-        const diariesWithUser: DiaryWithUser[] = snapshot.docs.map(docSnap => {
-          const data = docSnap.data() as DiaryEntry;
-          
-          // マップからユーザー情報を参照
-          const userData = userMap[data.uid] || { name: "不明なユーザ", iconUrl: "" };
+        const diariesWithUser: DiaryWithUser[] = snapshot.docs
+          .map(docSnap => {
+            const data = docSnap.data() as DiaryEntry;
+            const userData = userMap[data.uid];
+            
+            // 同じgroupIdのユーザーの投稿のみを返す
+            if (!userData) return null;
 
-          return {
-            ...data,
-            id: docSnap.id,
-            userName: userData.name,
-            userIconUrl: userData.iconUrl,
-          };
-        });
+            return {
+              ...data,
+              id: docSnap.id,
+              userName: userData.name,
+              userIconUrl: userData.iconUrl,
+            };
+          })
+          .filter((diary): diary is DiaryWithUser => diary !== null);
 
         setDiaries(diariesWithUser);
       } catch (err) {

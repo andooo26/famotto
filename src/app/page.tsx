@@ -6,7 +6,7 @@ import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
 import { firestoreUtils } from '@/lib/firebaseUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -63,40 +63,59 @@ export default function HomePage() {
       setDataLoading(true);
 
       try {
-        //users を取得して userMap を作る
+        // 現在のユーザーのgroupIdを取得
+        const currentUserDoc = await getDoc(doc(db, "users", user.uid));
+        const currentUserData = currentUserDoc.data() as any;
+        const currentGroupId = currentUserData?.groupId;
+
+        if (!currentGroupId) {
+          console.warn('ユーザーのgroupIdが設定されていません');
+          setDiaries([]);
+          setDataLoading(false);
+          return;
+        }
+
+        //users を取得して userMap を作る（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
-        const userMap: Record<string, { name: string; iconUrl: string }> = {};
+        const userMap: Record<string, { name: string; iconUrl: string; groupId?: string }> = {};
 
         usersSnap.forEach((u) => {
           const data = u.data() as any;
-          userMap[u.id] = {
-            name: data.name || "不明なユーザー",
-            iconUrl: data.iconUrl || "/emoji.png" // なければデフォルト画像
-          };
+          // 同じgroupIdのユーザーのみをuserMapに追加
+          if (data.groupId === currentGroupId) {
+            userMap[u.id] = {
+              name: data.name || "不明なユーザー",
+              iconUrl: data.iconUrl || "/emoji.png", // なければデフォルト画像
+              groupId: data.groupId,
+            };
+          }
         });
 
         //diary を取得する
         const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
         const diarySnap = await getDocs(q);
 
-        const fetchedDiaries: DiaryEntry[] = diarySnap.docs.map((docSnap) => {
-          const data = docSnap.data() as any;
-          const userData = userMap[data.uid] || {
-            name: "不明なユーザー",
-            iconUrl: "/emoji.png",
-          };
+        // 同じgroupIdのユーザーの投稿のみをフィルタリング
+        const fetchedDiaries: DiaryEntry[] = diarySnap.docs
+          .map((docSnap) => {
+            const data = docSnap.data() as any;
+            const userData = userMap[data.uid];
+            
+            // 同じgroupIdのユーザーの投稿のみを返す
+            if (!userData) return null;
 
-          return {
-            id: docSnap.id,
-            title: data.title,
-            content: data.content,
-            uid: data.uid,
-            mediaUrl: data.mediaUrl,
-            timestamp: data.timestamp,
-            userName: userData.name,
-            userIconUrl: userData.iconUrl,
-          };
-        });
+            return {
+              id: docSnap.id,
+              title: data.title,
+              content: data.content,
+              uid: data.uid,
+              mediaUrl: data.mediaUrl,
+              timestamp: data.timestamp,
+              userName: userData.name,
+              userIconUrl: userData.iconUrl,
+            };
+          })
+          .filter((diary): diary is DiaryEntry => diary !== null);
 
         setDiaries(fetchedDiaries);
 
