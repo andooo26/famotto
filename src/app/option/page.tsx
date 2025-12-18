@@ -15,6 +15,7 @@ export default function DiaryPage() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [userName, setUserName] = useState("");
     const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
+    const [showToast, setShowToast] = useState(false);
 
     useEffect(() => {
         const auth = getAuth();
@@ -97,21 +98,42 @@ export default function DiaryPage() {
 
     const handleCopyLink = async () => {
         if (!groupUrl) {
-            alert("招待リンクがありません");
             return;
         }
         try {
             await navigator.clipboard.writeText(groupUrl);
-            alert("招待リンクをコピーしました！");
+            setShowToast(true);
         } catch (error) {
             console.error("コピーに失敗しました", error);
-            alert("コピーに失敗しました");
         }
     };
+
+    useEffect(() => {
+        if (showToast) {
+            const timer = setTimeout(() => {
+                setShowToast(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showToast]);
 
     return (
         <div>
             <Header title="設定" />
+
+            {showToast && (
+                <div 
+                    className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+                    style={{
+                        backgroundColor: '#FEF08A',
+                        color: '#444',
+                        fontWeight: 'bold',
+                        transform: 'translateX(-50%)',
+                    }}
+                >
+                    招待リンクをコピーしました！
+                </div>
+            )}
 
             <main className="">
                 <div className="flex flex-col items-center  m-10 bg-white rounded-xl shadow-2xl">
