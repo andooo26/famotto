@@ -13,7 +13,13 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
     <header className="header" style={{ position: 'relative' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Link href="/">
-          <span style={{ fontSize: '32px', color: '#e8d4b0' }}>Famotto</span>
+          <span style={{ 
+            fontSize: '32px', 
+            color: '#fcdf98',
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            fontFamily: 'inherit'
+          }}>Famotto</span>
         </Link>
       </div>
       {title && (
