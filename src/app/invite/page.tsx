@@ -22,6 +22,7 @@ export default function InvitePage() {
 
             if (!newGroupId) {
                 alert("groupId がありません");
+                router.push("/");
                 return;
             }
 
@@ -30,11 +31,18 @@ export default function InvitePage() {
                 const groupDoc = await firestoreUtils.getDocument("groups", newGroupId);
                 if (!groupDoc) {
                     alert("グループが存在しません");
+                    router.push("/");
                     return;
                 }
 
                 // === joinRequests にフィールド追加 ==========
                 const joinRequests = groupDoc.joinRequests || {};
+
+                if(joinRequests[uid]) {
+                    alert("既に参加申請を送っています。リーダーの承認をお待ちください。");
+                    router.push("/");
+                    return;
+                }
 
                 joinRequests[uid] = {
                     uid,

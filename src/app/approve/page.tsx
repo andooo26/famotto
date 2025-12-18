@@ -20,8 +20,10 @@ export default function ApprovePage() {
         const params = new URLSearchParams(window.location.search);
         const groupId = params.get("groupId");
         const requestUid = params.get("uid");
+
         if (!groupId || !requestUid) {
             alert("URLが不正です");
+            router.push("/");
             return;
         }
 
@@ -30,21 +32,33 @@ export default function ApprovePage() {
             const group = await firestoreUtils.getDocument("groups", groupId);
             if (!group) {
                 alert("グループが存在しません");
+                router.push("/");
                 return;
             }
             
             //管理者チェック
             if (group.members?.[0] !== leaderUid) {
                 alert("権限がありません");
+                router.push("/");
                 return;
             }
 
-            //申請ユーザー取得
+            //申請ユーザー取得が存在するか
             const userDoc = await firestoreUtils.getDocument("users", requestUid);
             if (!userDoc) {
                 alert("ユーザーが存在しません");
+                router.push("/");
                 return;
             }
+
+            //参加申請が存在するか
+            const joinRequests = await firestoreUtils.getDocument("joinrequests", requestUid);
+            if (!joinRequests) {
+                alert("参加申請が存在しません");
+                router.push("/");
+                return;
+            }
+        
             const oldGroupId = userDoc.groupId;
 
             //旧グループから削除
