@@ -19,15 +19,32 @@ export default function DiaryPage() {
     useEffect(() => {
         const auth = getAuth();
         const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (!user) return;
+            
             try {
                 const uid = user.uid;
                 const userData = await firestoreUtils.getCollectionWhere("users", "uid", "==", uid);
-                setGroupUrl(userData[0].groupId);
+                if (userData.length > 0) {
+                    const userInfo = userData[0] as any;
+                    // グループIDを設定
+                    if (userInfo.groupId) {
+                        setGroupUrl(userInfo.groupId);
+                    }
+                    // ユーザー名を設定
+                    if (userInfo.name) {
+                        setUserName(userInfo.name);
+                    }
+                    // アイコンURLを設定
+                    if (userInfo.iconUrl) {
+                        setHeaderIcon(userInfo.iconUrl);
+                        setPreviewUrl(userInfo.iconUrl);
+                    }
+                }
             } catch (error) {
-                console.error("groupId取得エラー", error);
+                console.error("ユーザーデータ取得エラー", error);
             }
         });
-    return () => unsubscribe();
+        return () => unsubscribe();
     }, []);
 
     const FileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,6 +62,10 @@ export default function DiaryPage() {
     const handleSave = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
+        if (!user) {
+            alert("ログインが必要です。");
+            return;
+        }
         const uid = user.uid;
 
         try {
@@ -54,8 +75,9 @@ export default function DiaryPage() {
                 return;
             }
             const targetDocId = users[0].id;
+            const userInfo = users[0] as any;
 
-            let iconUrl = users[0].iconUrl ?? null;
+            let iconUrl = userInfo.iconUrl ?? null;
             if (imageFile) {
                 const path = `users/${uid}/icon.png`;
                 iconUrl = await storageUtils.uploadFile(path, imageFile);
@@ -73,6 +95,20 @@ export default function DiaryPage() {
         }
     };
 
+    const handleCopyLink = async () => {
+        if (!groupUrl) {
+            alert("招待リンクがありません");
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(groupUrl);
+            alert("招待リンクをコピーしました！");
+        } catch (error) {
+            console.error("コピーに失敗しました", error);
+            alert("コピーに失敗しました");
+        }
+    };
+
     return (
         <div>
             <Header title="設定" />
@@ -81,8 +117,17 @@ export default function DiaryPage() {
                 <div className="flex flex-col items-center  m-10 bg-white rounded-xl shadow-2xl">
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
-                            <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center">
-                                <Image src={previewUrl} alt="" fill={true} style={{ borderRadius: '50%', objectFit: 'cover' }} />
+                            <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center overflow-hidden">
+                                <img 
+                                    src={previewUrl} 
+                                    alt="" 
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        borderRadius: '50%', 
+                                        objectFit: 'cover' 
+                                    }} 
+                                />
                             </div>
                             <form action="/" method="post" encType="multipart/form-data">
                                 <input type="file" accept="image/*" id="file-upload-input" onChange={FileChange} style={{ display: 'none' }} />
@@ -94,10 +139,35 @@ export default function DiaryPage() {
                     </div>
                     <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl' placeholder="新しいユーザー名を入力" value={userName}
                         onChange={(e) => setUserName(e.target.value)}></input>
-                    <button onClick={handleSave} className='mt-7 text-xl w-30 bg-purple-300 rounded-full'>✓保存する</button>
-                    <div className='flex mt-7 mb-7'>
+                    <button
+                        onClick={handleSave}
+                        className="mt-7 text-xl w-30 rounded-full"
+                        style={{
+                            backgroundColor: '#FEF08A',
+                            color: '#444',
+                            fontWeight: 'bold',
+                            border: 'none',
+                        }}
+                    >
+                        保存する
+                    </button>
+                    <div className='flex items-center gap-3 mt-7 mb-7'>
                         <p className='text-2xl'>招待リンク　</p>
-                        <p className='text-2xl text-gray-400'>{groupUrl}</p>
+                        <p className='text-2xl text-gray-400'>{groupUrl || "リンクがありません"}</p>
+                        {groupUrl && (
+                            <button
+                                onClick={handleCopyLink}
+                                className="px-4 py-2 text-sm rounded-full transition hover:opacity-80"
+                                style={{
+                                    backgroundColor: '#FEF08A',
+                                    color: '#444',
+                                    fontWeight: 'bold',
+                                    border: 'none',
+                                }}
+                            >
+                                コピー
+                            </button>
+                        )}
                     </div>
                 </div>
             </main>
