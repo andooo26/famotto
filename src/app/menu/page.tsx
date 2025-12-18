@@ -117,12 +117,11 @@ export default function MenuPage() {
     }
   };
 
-  if (loading || (user && dataLoading)) {
+  if (loading || !user) {
     return (
       <div>
         <Header title="日記確認" />
         <main className="diary-card" style={{ padding: '10px' }}>
-          <div></div>
         </main>
         <Footer />
       </div>
@@ -162,7 +161,7 @@ export default function MenuPage() {
         </div>
 
         {filteredDiaries.length === 0 && (
-          <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>
+          <p style={{ textAlign: 'center' }}></p>
         )}
         {/*日記リストの表示*/}
         {filteredDiaries.map((diary) => (

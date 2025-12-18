@@ -129,33 +129,16 @@ export default function HomePage() {
   };
 
   // 条件分岐 
-  if (loading) return (
-    <div>
-      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
-      <main className="diary-card">
-        <div>Loading...</div>
-      </main>
-      <Footer />
-    </div>
-  );
-  if (!user) return (
-    <div>
-      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
-      <main className="diary-card">
-        <div>ログインが必要です。</div>
-      </main>
-      <Footer />
-    </div>
-  );
-  if (dataLoading) return (
-    <div>
-      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
-      <main className="diary-card">
-        <div>ロード中...</div>
-      </main>
-      <Footer />
-    </div>
-  );
+  if (loading || !user) {
+    return (
+      <div>
+        <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
+        <main className="diary-card">
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -166,7 +149,7 @@ export default function HomePage() {
       <main className="diary-card">
 
         {diaries.length === 0 && (
-          <p style={{ textAlign: 'center' }}>まだ日記が投稿されていません。</p>
+          <p style={{ textAlign: 'center' }}></p>
         )}
 
         {diaries.map((diary) => (

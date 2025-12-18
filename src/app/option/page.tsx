@@ -1,5 +1,5 @@
 "use client";
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Image from 'next/image'; 
 import './../globals.css';
 import './../../lib/firebase';
@@ -15,6 +15,20 @@ export default function DiaryPage() {
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [userName, setUserName] = useState("");
     const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
+
+    useEffect(() => {
+        const auth = getAuth();
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            try {
+                const uid = user.uid;
+                const userData = await firestoreUtils.getCollectionWhere("users", "uid", "==", uid);
+                setGroupUrl(userData[0].groupId);
+            } catch (error) {
+                console.error("groupId取得エラー", error);
+            }
+        });
+    return () => unsubscribe();
+    }, []);
 
     const FileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
