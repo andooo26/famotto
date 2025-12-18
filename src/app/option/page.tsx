@@ -16,6 +16,7 @@ export default function DiaryPage() {
     const [userName, setUserName] = useState("");
     const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
     const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
 
     useEffect(() => {
         const auth = getAuth();
@@ -89,7 +90,8 @@ export default function DiaryPage() {
                 iconUrl: iconUrl,
                 updatedAt: new Date(),
             });
-            alert("保存しました！");
+            setToastMessage("保存しました！");
+            setShowToast(true);
         } catch (error) {
             console.error(error);
             alert("保存中にエラーが発生しました");
@@ -102,6 +104,7 @@ export default function DiaryPage() {
         }
         try {
             await navigator.clipboard.writeText(groupUrl);
+            setToastMessage("招待リンクをコピーしました！");
             setShowToast(true);
         } catch (error) {
             console.error("コピーに失敗しました", error);
@@ -131,7 +134,7 @@ export default function DiaryPage() {
                         transform: 'translateX(-50%)',
                     }}
                 >
-                    招待リンクをコピーしました！
+                    {toastMessage}
                 </div>
             )}
 
