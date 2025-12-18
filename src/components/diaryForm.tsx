@@ -232,8 +232,21 @@ export default function DiaryForm() {
           hidden
         />
 
-        {/* アップロード中 */}
-        {isUploading && <p className="text-red-500 mb-3">アップロード中</p>}
+        {/* アップロード中のプログレスバー */}
+        {isUploading && (
+          <div className="mb-3 w-full">
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="h-2.5 rounded-full transition-all duration-300"
+                style={{ 
+                  width: `${uploadProgress}%`,
+                  backgroundColor: '#fcdf98'
+                }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-1 text-center">{Math.round(uploadProgress)}%</p>
+          </div>
+        )}
 
         {/* 選択されたファイルとプレビュー */}
         {file && (
