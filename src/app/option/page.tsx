@@ -128,7 +128,7 @@ export default function DiaryPage() {
                 <div 
                     className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
                     style={{
-                        backgroundColor: '#FEF08A',
+                        backgroundColor: '#fcdf98',
                         color: '#444',
                         fontWeight: 'bold',
                         transform: 'translateX(-50%)',
@@ -168,7 +168,7 @@ export default function DiaryPage() {
                         onClick={handleSave}
                         className="mt-7 text-xl w-30 rounded-full"
                         style={{
-                            backgroundColor: '#FEF08A',
+                            backgroundColor: '#fcdf98',
                             color: '#444',
                             fontWeight: 'bold',
                             border: 'none',
@@ -184,7 +184,7 @@ export default function DiaryPage() {
                                 onClick={handleCopyLink}
                                 className="px-4 py-2 text-sm rounded-full transition hover:opacity-80"
                                 style={{
-                                    backgroundColor: '#FEF08A',
+                                    backgroundColor: '#fcdf98',
                                     color: '#444',
                                     fontWeight: 'bold',
                                     border: 'none',

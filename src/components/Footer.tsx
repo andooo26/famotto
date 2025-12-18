@@ -16,8 +16,8 @@ export default function Footer() {
 
   const linkStyle = (path: string) => ({
     textDecoration: 'none',
-    color: isActive(path) ? '#f4d03f' : '#000',
-    fontSize: '14px',
+    color: isActive(path) ? '#fcdf98' : '#000',
+    fontSize: '16px',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
@@ -26,15 +26,15 @@ export default function Footer() {
 
   const diaryLinkStyle = {
     textDecoration: 'none',
-    color: isActive('/diary') ? '#f4d03f' : '#000',
-    fontSize: '14px',
+    color: isActive('/diary') ? '#000' : '#666',
+    fontSize: '16px',
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
     opacity: isActive('/diary') ? 1 : 0.7,
     padding: '8px 16px',
     borderRadius: '16px',
-    backgroundColor: 'rgba(244, 208, 63, 0.3)',
+    backgroundColor: 'rgba(252, 223, 152, 0.5)',
   };
 
   return (

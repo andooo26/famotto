@@ -50,7 +50,7 @@ export default function LoginPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f7e5c3ff 0%, #f7e5c3ff 100%)',
+            background: 'linear-gradient(135deg, #f8e8d0 0%, #f8e8d0 100%)',
             margin: 0,
             padding: 0
         }}

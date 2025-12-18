@@ -207,21 +207,21 @@ export default function DiaryForm() {
             {/*プレビュー*/}
             <div className="w-full flex justify-center">
               <div className="max-h-48 max-w-full overflow-auto p-2 border rounded-lg bg-gray-50">
-                {file.type.startsWith('image/') && (
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt="preview"
+              {file.type.startsWith('image/') && (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="preview"
                     className="max-w-full max-h-44 h-auto rounded object-contain"
-                  />
-                )}
+                />
+              )}
 
-                {file.type.startsWith('video/') && (
-                  <video
-                    src={URL.createObjectURL(file)}
-                    controls
+              {file.type.startsWith('video/') && (
+                <video
+                  src={URL.createObjectURL(file)}
+                  controls
                     className="max-w-full max-h-44 rounded"
-                  />
-                )}
+                />
+              )}
               </div>
             </div>
           </div>
@@ -229,44 +229,44 @@ export default function DiaryForm() {
 
         {/* ボタン3つ - 右下に配置 */}
         <div className="flex justify-end gap-4 mt-6 pb-4">
-          {/* 画像・動画追加 */}
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            type="button"
-            disabled={isRecording}
+            {/* 画像・動画追加 */}
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              type="button"
+              disabled={isRecording}
             className="flex flex-col items-center"
-          >
-            <Image src="/upload.jpg" alt="" width={50} height={60} />
+            >
+                <Image src="/upload.jpg" alt="" width={50} height={60} />
             <span>動画/画像</span>
-          </button>
+            </button>
 
-          {/* 音声認識*/}
-          <button
-            type="button"
-            onClick={() => {
-              if (isRecording) {
-                stopSpeechRecognition();
-              } else {
-                startSpeechRecognition();
-              }
-            }}
+            {/* 音声認識*/}
+            <button
+              type="button"
+              onClick={() => {
+                if (isRecording) {
+                  stopSpeechRecognition();
+                } else {
+                  startSpeechRecognition();
+                }
+              }}
             className="flex flex-col items-center"
-          >
-            <Image src="/mic.png" alt="" width={50} height={60} />
+            >
+                <Image src="/mic.png" alt="" width={50} height={60} />
             <span>{isRecording ? "録音停止" : "音声入力"}</span>
-          </button>
+            </button>
 
-          {/* 投稿 */}
-          <button
-            onClick={handleSubmit}
-            type="button"
+            {/* 投稿 */}
+            <button
+              onClick={handleSubmit}
+              type="button"
             disabled={isRecording}
             className="flex flex-col items-center"
           >
-            <Image src="/check.png" alt="" width={50} height={60} />
-            <span>投稿</span>
+                <Image src="/check.png" alt="" width={50} height={60} />
+                <span>投稿</span>
           </button>
-        </div>
+              </div>
 
         {/* 録音中表示 */}
         {isRecording && (
