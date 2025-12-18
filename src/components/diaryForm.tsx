@@ -1,5 +1,5 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { db, auth } from '../lib/firebase';
@@ -27,7 +27,9 @@ export default function DiaryForm() {
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   const startSpeechRecognition = () => {
@@ -85,19 +87,26 @@ export default function DiaryForm() {
       // アップロードの進行状況を確認
       uploadTask.on(
         'state_changed',
-        () => { },
+        (snapshot) => {
+          // 進捗率を計算
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
         () => {
           setIsUploading(false);
+          setUploadProgress(0);
           reject('ファイルアップロードに失敗しました');
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref)
             .then((downloadURL) => {
               setIsUploading(false);
+              setUploadProgress(0);
               resolve(downloadURL);
             })
             .catch(() => {
               setIsUploading(false);
+              setUploadProgress(0);
               reject('ダウンロードURL取得失敗');
             });
         }
@@ -128,12 +137,27 @@ export default function DiaryForm() {
         timestamp: serverTimestamp(),
       });
 
-      // 投稿完了後、ルートディレクトリに遷移
-      router.push('/');
+      // トーストを表示
+      setShowToast(true);
+      
+      // トースト表示後、少し遅延してからルートディレクトリに遷移
+      setTimeout(() => {
+        router.push('/');
+      }, 1500);
     } catch (e) {
       alert('書き込みに失敗しました');
     }
   };
+
+  // トーストを3秒後に非表示にする
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   /* ファイル選択 */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,6 +172,19 @@ export default function DiaryForm() {
 
   return (
     <main className="">
+      {showToast && (
+        <div 
+          className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+          style={{
+            backgroundColor: '#fcdf98',
+            color: '#444',
+            fontWeight: 'bold',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          投稿完了
+        </div>
+      )}
       <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto relative">
 
        {/* 内容 */}
