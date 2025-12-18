@@ -6,7 +6,8 @@ import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { firestoreUtils } from '@/lib/firebaseUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -43,6 +44,9 @@ export default function HomePage() {
   // --- Hooksは必ずここで全て呼ぶ ---
   const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [diaryToDelete, setDiaryToDelete] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
 
   // 認証チェック
   useEffect(() => {
@@ -119,6 +123,45 @@ export default function HomePage() {
     }
   };
 
+  // 削除確認モーダルを開く
+  const openDeleteModal = (diaryId: string) => {
+    setDiaryToDelete(diaryId);
+    setDeleteModalOpen(true);
+  };
+
+  // 削除確認モーダルを閉じる
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setDiaryToDelete(null);
+  };
+
+  // 投稿削除処理
+  const handleDelete = async () => {
+    if (!user || !diaryToDelete) return;
+
+    try {
+      await firestoreUtils.deleteDocument('diary', diaryToDelete);
+      // 日記リストから削除
+      setDiaries(prevDiaries => prevDiaries.filter(diary => diary.id !== diaryToDelete));
+      closeDeleteModal();
+      // トーストを表示
+      setShowToast(true);
+    } catch (error) {
+      console.error('削除エラー:', error);
+      alert('削除に失敗しました');
+    }
+  };
+
+  // トーストを3秒後に非表示にする
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -142,6 +185,90 @@ export default function HomePage() {
 
   return (
     <div>
+      {/* 削除完了トースト */}
+      {showToast && (
+        <div 
+          className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+          style={{
+            backgroundColor: '#fcdf98',
+            color: '#444',
+            fontWeight: 'bold',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          削除完了
+        </div>
+      )}
+
+      {/* 削除確認モーダル */}
+      {deleteModalOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={closeDeleteModal}
+        >
+          <div 
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: '16px',
+              padding: '1.5rem',
+              maxWidth: '320px',
+              width: '85%',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.2)',
+              animation: 'modal-fade-in 0.3s ease-out',
+              animationFillMode: 'both'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 style={{ margin: '0 0 1.5rem 0', fontSize: '1.2rem', fontWeight: 'bold' }}>
+              投稿を削除しますか？
+            </h3>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                onClick={closeDeleteModal}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  border: '1px solid #ccc',
+                  background: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  flex: 1
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={handleDelete}
+                style={{
+                  padding: '0.5rem 1rem',
+                  borderRadius: '8px',
+                  border: 'none',
+                  background: '#e74c3c',
+                  color: '#fff',
+                  cursor: 'pointer',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold',
+                  flex: 1
+                }}
+              >
+                削除する
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ヘッダー */}
       <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
 
@@ -157,14 +284,14 @@ export default function HomePage() {
           <div key={diary.id}>
 
             {/* 投稿者/アイコン */}
-            <div className="card-header" style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}>
+            <div className="card-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '10px' }}>
               <img
                 src={diary.userIconUrl}
                 alt={diary.userName}
                 className="icon"
-                style={{ width: '24px', height: '24px', marginRight: '8px', borderRadius: '50%' }}
+                style={{ width: '32px', height: '32px', marginRight: '8px', borderRadius: '50%', order: 1 }}
               />
-              <span className="username" style={{ fontWeight: 'bold', color: '#1da1f2' }}>
+              <span className="username" style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>
                 {diary.userName}
               </span>
             </div>
@@ -187,6 +314,21 @@ export default function HomePage() {
                 投稿日時: {diary.timestamp.toDate().toLocaleString()}
               </p>
               <div>
+                {user && diary.uid === user.uid && (
+                  <button 
+                    onClick={() => openDeleteModal(diary.id)} 
+                    style={{ 
+                      background: 'none', 
+                      border: 'none', 
+                      cursor: 'pointer', 
+                      fontSize: '1.2em', 
+                      marginRight: '10px',
+                      color: '#e74c3c'
+                    }}
+                  >
+                    🗑️
+                  </button>
+                )}
                 <a href={`tel:${diary.uid}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
                 <button onClick={handleShare} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
               </div>
