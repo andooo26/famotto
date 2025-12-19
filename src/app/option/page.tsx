@@ -162,7 +162,7 @@ export default function DiaryPage() {
                             </form>
                         </div>
                     </div>
-                    <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl' placeholder="新しいユーザー名を入力" value={userName}
+                    <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
                         onChange={(e) => setUserName(e.target.value)}></input>
                     <button
                         onClick={handleSave}

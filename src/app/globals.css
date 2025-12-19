@@ -362,3 +362,11 @@ body {
     transform: translateY(0);
   }
 }
+
+/* テキストボックスのフォーカス時のスタイル */
+input:focus,
+textarea:focus {
+  outline: none;
+  border-color: #facc15 !important; /* yellow-400 */
+  box-shadow: 0 0 0 2px rgba(250, 204, 21, 0.3) !important;
+}

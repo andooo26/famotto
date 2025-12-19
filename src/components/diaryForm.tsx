@@ -218,7 +218,8 @@ export default function DiaryForm() {
       resize-y
       focus:outline-none 
       focus:ring-2 
-      focus:ring-blue-400 
+      focus:ring-yellow-400 
+      focus:border-yellow-400
       shadow-sm 
       transition
     "
