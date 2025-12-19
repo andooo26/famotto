@@ -30,7 +30,7 @@ export default function DiaryPage() {
                     const userInfo = userData[0] as any;
                     // グループIDを設定
                     if (userInfo.groupId) {
-                        setGroupUrl(userInfo.groupId);
+                        setGroupUrl(`https://famotto.and0.net/invite?id=${userInfo.groupId}`);
                     }
                     // ユーザー名を設定
                     if (userInfo.name) {
