@@ -317,7 +317,7 @@ export default function MenuPage() {
               <img
                 src={diary.userIconUrl}
                 alt={diary.userName}
-                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%', order: 1 }}
+                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%', order: 1, objectFit: 'cover' }}
               />
               <span style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>{diary.userName}</span>
             </div>

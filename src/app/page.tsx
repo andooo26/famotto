@@ -96,15 +96,14 @@ export default function HomePage() {
         const diarySnap = await getDocs(q);
 
         // 同じgroupIdのユーザーの投稿のみをフィルタリング
-        const fetchedDiaries: DiaryEntry[] = diarySnap.docs
-          .map((docSnap) => {
-            const data = docSnap.data() as any;
-            const userData = userMap[data.uid];
-            
-            // 同じgroupIdのユーザーの投稿のみを返す
-            if (!userData) return null;
-
-            return {
+        const fetchedDiaries: DiaryEntry[] = [];
+        diarySnap.docs.forEach((docSnap) => {
+          const data = docSnap.data() as any;
+          const userData = userMap[data.uid];
+          
+          // 同じgroupIdのユーザーの投稿のみを追加
+          if (userData) {
+            fetchedDiaries.push({
               id: docSnap.id,
               title: data.title,
               content: data.content,
@@ -113,9 +112,9 @@ export default function HomePage() {
               timestamp: data.timestamp,
               userName: userData.name,
               userIconUrl: userData.iconUrl,
-            };
-          })
-          .filter((diary): diary is DiaryEntry => diary !== null);
+            });
+          }
+        });
 
         setDiaries(fetchedDiaries);
 
@@ -308,7 +307,7 @@ export default function HomePage() {
                 src={diary.userIconUrl}
                 alt={diary.userName}
                 className="icon"
-                style={{ width: '32px', height: '32px', marginRight: '8px', borderRadius: '50%', order: 1 }}
+                style={{ width: '32px', height: '32px', marginRight: '8px', borderRadius: '50%', order: 1, objectFit: 'cover' }}
               />
               <span className="username" style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>
                 {diary.userName}
