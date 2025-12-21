@@ -14,6 +14,7 @@ export default function DiaryPage() {
     const [previewUrl, setPreviewUrl] = useState("/icon.jpg"); //こっちも
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [userName, setUserName] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
@@ -35,6 +36,10 @@ export default function DiaryPage() {
                     // ユーザー名を設定
                     if (userInfo.name) {
                         setUserName(userInfo.name);
+                    }
+                    // 電話番号を設定
+                    if (userInfo.phoneNumber) {
+                        setPhoneNumber(userInfo.phoneNumber);
                     }
                     // アイコンURLを設定
                     if (userInfo.iconUrl) {
@@ -87,6 +92,7 @@ export default function DiaryPage() {
 
             await firestoreUtils.updateDocument("users", targetDocId, {
                 name: userName,
+                phoneNumber: phoneNumber,
                 iconUrl: iconUrl,
                 updatedAt: new Date(),
             });
@@ -164,19 +170,7 @@ export default function DiaryPage() {
                     </div>
                     <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
                         onChange={(e) => setUserName(e.target.value)}></input>
-                    <button
-                        onClick={handleSave}
-                        className="mt-7 text-xl w-30 rounded-full"
-                        style={{
-                            backgroundColor: '#fcdf98',
-                            color: '#444',
-                            fontWeight: 'bold',
-                            border: 'none',
-                        }}
-                    >
-                        保存する
-                    </button>
-                    <div className='flex items-center gap-3 mt-7 mb-7'>
+                    <div className='flex items-center gap-3 mt-7'>
                         <p className='text-2xl'>招待リンク　</p>
                         <p className='text-2xl text-gray-400'>{groupUrl || "リンクがありません"}</p>
                         {groupUrl && (
@@ -194,6 +188,28 @@ export default function DiaryPage() {
                             </button>
                         )}
                     </div>
+                    <div className='flex items-center gap-3 mt-7 mb-7'>
+                        <p className='text-2xl'>わたしの電話番号</p>
+                        <input 
+                            type="tel" 
+                            className='text-xl border-2 w-60 placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            placeholder="電話番号を入力" 
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        onClick={handleSave}
+                        className="mt-7 mb-7 text-xl w-30 rounded-full"
+                        style={{
+                            backgroundColor: '#fcdf98',
+                            color: '#444',
+                            fontWeight: 'bold',
+                            border: 'none',
+                        }}
+                    >
+                        保存する
+                    </button>
                 </div>
             </main>
 

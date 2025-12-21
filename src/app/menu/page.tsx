@@ -21,6 +21,7 @@ interface DiaryEntry {
 interface DiaryWithUser extends DiaryEntry {
   userName: string;
   userIconUrl: string;
+  userPhoneNumber?: string;
 }
 
 // メディア表示コンポーネント
@@ -79,7 +80,7 @@ export default function MenuPage() {
 
         //  ユーザー情報を一括取得（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
-        const userMap: Record<string, { name: string; iconUrl: string; groupId?: string }> = {};
+        const userMap: Record<string, { name: string; iconUrl: string; phoneNumber?: string; groupId?: string }> = {};
 
         const users = usersSnap.docs
           .filter(u => {
@@ -89,7 +90,7 @@ export default function MenuPage() {
           .map(u => {
             const data = u.data() as any;
             // アイコンURLがない場合
-            const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "" };
+            const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "", phoneNumber: data.phoneNumber || "" };
             userMap[u.id] = userInfo;
             return { uid: u.id, name: userInfo.name };
           });
@@ -113,6 +114,7 @@ export default function MenuPage() {
               id: docSnap.id,
               userName: userData.name,
               userIconUrl: userData.iconUrl,
+              userPhoneNumber: userData.phoneNumber,
             };
           })
           .filter((diary): diary is DiaryWithUser => diary !== null);
@@ -361,7 +363,11 @@ export default function MenuPage() {
                     🗑️
                   </button>
                 )}
-                <a href={`tel:${diary.uid}`} style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                {user && diary.uid !== user.uid && diary.userPhoneNumber ? (
+                  <a href={`tel:${diary.userPhoneNumber}`} style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                ) : user && diary.uid !== user.uid && !diary.userPhoneNumber ? (
+                  <span style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
+                ) : null}
                 <button
                   onClick={handleShare}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}

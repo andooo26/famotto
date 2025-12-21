@@ -20,6 +20,7 @@ interface DiaryEntry {
   timestamp: { toDate: () => Date }; // Firestore Timestampの簡易的な型
   userName?: string;
   userIconUrl?: string;
+  userPhoneNumber?: string;
 }
 // --- ヘルパーコンポーネント: メディア表示 ---
 const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
@@ -77,7 +78,7 @@ export default function HomePage() {
 
         //users を取得して userMap を作る（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
-        const userMap: Record<string, { name: string; iconUrl: string; groupId?: string }> = {};
+        const userMap: Record<string, { name: string; iconUrl: string; phoneNumber?: string; groupId?: string }> = {};
 
         usersSnap.forEach((u) => {
           const data = u.data() as any;
@@ -86,6 +87,7 @@ export default function HomePage() {
             userMap[u.id] = {
               name: data.name || "不明なユーザー",
               iconUrl: data.iconUrl || "/emoji.png", // なければデフォルト画像
+              phoneNumber: data.phoneNumber || "",
               groupId: data.groupId,
             };
           }
@@ -112,6 +114,7 @@ export default function HomePage() {
               timestamp: data.timestamp,
               userName: userData.name,
               userIconUrl: userData.iconUrl,
+              userPhoneNumber: userData.phoneNumber,
             });
           }
         });
@@ -347,7 +350,11 @@ export default function HomePage() {
                     🗑️
                   </button>
                 )}
-                <a href={`tel:${diary.uid}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                {user && diary.uid !== user.uid && diary.userPhoneNumber ? (
+                  <a href={`tel:${diary.userPhoneNumber}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                ) : user && diary.uid !== user.uid && !diary.userPhoneNumber ? (
+                  <span className="btn-icon" style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
+                ) : null}
                 <button onClick={handleShare} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
               </div>
             </div>
