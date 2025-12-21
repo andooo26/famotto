@@ -1,10 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { db, storage } from '@/lib/firebase';
+import { useRouter, useParams } from 'next/navigation';
+import { db } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
-import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import { firestoreUtils } from '@/lib/firebaseUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -40,19 +39,17 @@ const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
 };
 
 // メインコンポーネント
-export default function MenuPage() {
+export default function MenuUserPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
+  const params = useParams();
+  const userId = params.userId as string;
   const [diaries, setDiaries] = useState<DiaryWithUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [diaryToDelete, setDiaryToDelete] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
-
-  //ユーザーリストと選択されたユーザー（URLパラメータから初期化）
-  const [selectedUser, setSelectedUser] = useState<string>(searchParams.get('userId') || "all");
-  const [userList, setUserList] = useState<{ uid: string; name: string }[]>([]);
+  const [targetUserName, setTargetUserName] = useState<string>("");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -60,18 +57,8 @@ export default function MenuPage() {
     }
   }, [loading, user, router]);
 
-  // URLパラメータの変更を監視
   useEffect(() => {
-    const userId = searchParams.get('userId');
-    if (userId) {
-      setSelectedUser(userId);
-    } else {
-      setSelectedUser("all");
-    }
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (!user) return;
+    if (!user || !userId) return;
 
     const fetchDiariesWithUser = async () => {
       setDataLoading(true);
@@ -84,40 +71,51 @@ export default function MenuPage() {
         if (!currentGroupId) {
           console.warn('ユーザーのgroupIdが設定されていません');
           setDiaries([]);
-          setUserList([]);
           setDataLoading(false);
           return;
         }
 
-        //  ユーザー情報を一括取得（同じgroupIdのユーザーのみ）
+        // 対象ユーザーの情報を取得
+        const targetUserDoc = await getDoc(doc(db, "users", userId));
+        const targetUserData = targetUserDoc.data() as any;
+        
+        if (!targetUserData || targetUserData.groupId !== currentGroupId) {
+          console.warn('指定されたユーザーが見つからないか、同じグループに属していません');
+          setDiaries([]);
+          setDataLoading(false);
+          return;
+        }
+
+        setTargetUserName(targetUserData.name || "不明なユーザー");
+
+        // ユーザー情報を一括取得（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
         const userMap: Record<string, { name: string; iconUrl: string; phoneNumber?: string; groupId?: string }> = {};
 
-        const users = usersSnap.docs
-          .filter(u => {
-            const data = u.data() as any;
-            return data.groupId === currentGroupId;
-          })
-          .map(u => {
-            const data = u.data() as any;
-            // アイコンURLがない場合
-            const userInfo = { name: data.name || "不明なユーザ", iconUrl: data.iconUrl || "", phoneNumber: data.phoneNumber || "" };
-            userMap[u.id] = userInfo;
-            return { uid: u.id, name: userInfo.name };
-          });
-        setUserList(users);
+        usersSnap.forEach((u) => {
+          const data = u.data() as any;
+          if (data.groupId === currentGroupId) {
+            userMap[u.id] = {
+              name: data.name || "不明なユーザ",
+              iconUrl: data.iconUrl || "",
+              phoneNumber: data.phoneNumber || "",
+              groupId: data.groupId,
+            };
+          }
+        });
 
-        // 日記を一括取得 
+        // 日記を一括取得（指定されたユーザーのみ）
         const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
         const snapshot = await getDocs(q);
 
-        // ユーザー情報を結合
+        // ユーザー情報を結合（指定されたユーザーの投稿のみ）
         const diariesWithUser: DiaryWithUser[] = snapshot.docs
           .map(docSnap => {
             const data = docSnap.data() as DiaryEntry;
-            const userData = userMap[data.uid];
+            // 指定されたユーザーの投稿のみを返す
+            if (data.uid !== userId) return null;
             
-            // 同じgroupIdのユーザーの投稿のみを返す
+            const userData = userMap[data.uid];
             if (!userData) return null;
 
             return {
@@ -139,19 +137,11 @@ export default function MenuPage() {
     };
 
     fetchDiariesWithUser();
-  }, [user]);
+  }, [user, userId]);
 
-  // ユーザー選択変更時の処理（従来の動作：URLを変更せずにフィルタリング）
-  const handleUserChange = (userId: string) => {
-    setSelectedUser(userId);
-    // URLは変更せず、同じページ内でフィルタリング
-  };
-
-  // 共有機能（クエリパラメータまたは動的ルートでURLを生成）
+  // 共有機能
   const handleShare = () => {
-    const shareUrl = selectedUser === "all" 
-      ? `${window.location.origin}/menu`
-      : `${window.location.origin}/menu/${selectedUser}`;
+    const shareUrl = `${window.location.origin}/menu/${userId}`;
     
     if (navigator.share) {
       navigator.share({
@@ -218,12 +208,6 @@ export default function MenuPage() {
       </div>
     );
   }
-
-  // ユーザー選択による絞り込み
-  const filteredDiaries =
-    selectedUser === "all"
-      ? diaries
-      : diaries.filter((d) => d.uid === selectedUser);
 
   // JSXのレンダリング
   return (
@@ -312,34 +296,19 @@ export default function MenuPage() {
         </div>
       )}
 
-      <Header title="日記確認" />
+      <Header title={`${targetUserName}の日記`} />
 
       <main className="diary-card" style={{ padding: '10px' }}>
-
-        {/* ユーザーで絞り込み */}
-        <div style={{ marginBottom: "15px" }}>
-          <label style={{ marginRight: "8px" }}>ユーザーで絞り込み：</label>
-          <select
-            value={selectedUser}
-            onChange={(e) => handleUserChange(e.target.value)}
-            style={{
-              padding: "6px",
-              borderRadius: "6px",
-              border: "1px solid #ccc"
-            }}
-          >
-            <option value="all">全員</option>
-            {userList.map((u) => (
-              <option key={u.uid} value={u.uid}>{u.name}</option>
-            ))}
-          </select>
-        </div>
-
-        {filteredDiaries.length === 0 && (
-          <p style={{ textAlign: 'center' }}></p>
+        {dataLoading && (
+          <p style={{ textAlign: 'center' }}>読み込み中...</p>
         )}
+
+        {!dataLoading && diaries.length === 0 && (
+          <p style={{ textAlign: 'center' }}>投稿がありません</p>
+        )}
+
         {/*日記リストの表示*/}
-        {filteredDiaries.map((diary) => (
+        {diaries.map((diary) => (
           <div key={diary.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0' }}>
             <div className="card-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '10px' }}>
               <img
@@ -410,3 +379,4 @@ export default function MenuPage() {
     </div>
   );
 }
+
