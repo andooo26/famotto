@@ -147,16 +147,13 @@ export default function MenuPage() {
     // URLは変更せず、同じページ内でフィルタリング
   };
 
-  // 共有機能（クエリパラメータまたは動的ルートでURLを生成）
-  const handleShare = () => {
-    const shareUrl = selectedUser === "all" 
-      ? `${window.location.origin}/menu`
-      : `${window.location.origin}/menu/${selectedUser}`;
+  // 共有機能（投稿者の日記確認ページへのリンクを生成）
+  const handleShare = (diaryUid: string) => {
+    const shareUrl = `${window.location.origin}/menu?userId=${diaryUid}`;
     
     if (navigator.share) {
       navigator.share({
         title: 'Famotto',
-        text: 'Famotto',
         url: shareUrl,
       });
     } else {
@@ -395,7 +392,7 @@ export default function MenuPage() {
                   <span style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
                 ) : null}
                 <button
-                  onClick={handleShare}
+                  onClick={() => handleShare(diary.uid)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}
                 >
                   🔗

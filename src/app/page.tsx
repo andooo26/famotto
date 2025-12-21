@@ -131,16 +131,22 @@ export default function HomePage() {
     fetchDiaries();
   }, [user]);
 
-  // 共有ボタン処理
-  const handleShare = () => {
+  // 共有ボタン処理（投稿者の日記確認ページへのリンクを生成）
+  const handleShare = (diaryUid: string) => {
+    const shareUrl = `${window.location.origin}/menu?userId=${diaryUid}`;
+    
     if (navigator.share) {
       navigator.share({
         title: 'Famotto',
-        text: 'Famotto',
-        url: window.location.href,
+        url: shareUrl,
       });
     } else {
-      alert('このブラウザは共有機能に対応していません');
+      // フォールバック: クリップボードにコピー
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('リンクをコピーしました: ' + shareUrl);
+      }).catch(() => {
+        alert('このブラウザは共有機能に対応していません');
+      });
     }
   };
 
@@ -355,7 +361,7 @@ export default function HomePage() {
                 ) : user && diary.uid !== user.uid && !diary.userPhoneNumber ? (
                   <span className="btn-icon" style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
                 ) : null}
-                <button onClick={handleShare} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
+                <button onClick={() => handleShare(diary.uid)} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
               </div>
             </div>
           </div>
