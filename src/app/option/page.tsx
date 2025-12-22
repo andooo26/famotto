@@ -168,8 +168,16 @@ export default function DiaryPage() {
                             </form>
                         </div>
                     </div>
-                    <input type="text" className='text-xl sm:text-3xl mx-auto border-2 w-full sm:w-60 mt-7 px-2 placeholder:text-base sm:placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
-                        onChange={(e) => setUserName(e.target.value)}></input>
+                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 px-4 sm:px-0 w-full justify-center'>
+                        <p className='text-xl sm:text-2xl whitespace-nowrap'>ユーザー名</p>
+                        <input 
+                            type="text" 
+                            className='text-base sm:text-xl border-2 w-full sm:w-60 placeholder:text-sm sm:placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            placeholder="新しいユーザー名を入力" 
+                            value={userName}
+                            onChange={(e) => setUserName(e.target.value)}
+                        />
+                    </div>
                     <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 px-4 sm:px-0 w-full justify-center'>
                         <p className='text-xl sm:text-2xl whitespace-nowrap'>わたしの電話番号</p>
                         <input 
