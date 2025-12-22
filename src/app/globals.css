@@ -477,6 +477,7 @@ body {
   animation-fill-mode: both;
 }
 
+
 /* モーダルアニメーション */
 @keyframes modal-fade-in {
   from {

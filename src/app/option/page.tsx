@@ -143,12 +143,14 @@ export default function DiaryPage() {
 
             {showToast && (
                 <div 
-                    className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+                    className="fixed top-20 left-1/2 px-6 py-3 rounded-full shadow-lg animate-fade-in toast-message"
                     style={{
                         backgroundColor: '#fcdf98',
                         color: '#444',
                         fontWeight: 'bold',
                         transform: 'translateX(-50%)',
+                        zIndex: 1001,
+                        whiteSpace: 'nowrap',
                     }}
                 >
                     {toastMessage}
