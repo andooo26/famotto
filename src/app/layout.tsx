@@ -1,8 +1,15 @@
 import type { Metadata } from "next"
 import './globals.css';  
 import { AuthProvider } from "@/contexts/AuthContext"
+import { Poppins } from 'next/font/google'
 
 import './globals.css'; //追記
+
+const poppins = Poppins({
+  weight: ['300', '400', '500', '600', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: "Famotto",
@@ -16,7 +23,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ja">
-      <body style={{ margin: 0, padding: 0 }}>
+      <body className={poppins.className} style={{ margin: 0, padding: 0 }}>
         <AuthProvider>
           {children}
         </AuthProvider>

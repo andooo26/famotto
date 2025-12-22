@@ -9,6 +9,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import { signOut } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function ThemePage() {
     const { user, loading } = useAuth();
@@ -35,21 +37,7 @@ export default function ThemePage() {
     }, []);
     return (
         <div>
-
-            <div>
-                {/* ヘッダー */}
-                <header className="header">
-                    <div className="profile-icon">
-                        <Image
-                            src="/icon.jpg" // プロフィール画像のパス
-                            alt="プロフィール"
-                            width={40}
-                            height={40}
-                            style={{ borderRadius: '50%' }}
-                        />
-                    </div>
-                    <a href='./..'><span>Famotto</span></a>
-                </header>
+            <Header title="今日のお題" />
                 
                 {/* カード */}
                 <main className="content">
@@ -62,18 +50,7 @@ export default function ThemePage() {
                     </div>
                 </main>
 
-                {/* フッター */}
-                <footer className="footer">
-                    <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span>
-                    </a>
-                    <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span>
-                    </a>
-                    <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span>
-                    </a>
-                </footer>
-
-            </div>
+            <Footer />
         </div>
-
     );
 }

@@ -1,12 +1,9 @@
 'use client';
-
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
-import { signOut } from '@/lib/auth';
-import { useRouter } from 'next/navigation';
-import Image from 'next/image';
+import { useRouter, useParams } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, orderBy, getDocs, doc, deleteDoc, getDoc } from 'firebase/firestore';
+import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import { firestoreUtils } from '@/lib/firebaseUtils';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -17,52 +14,54 @@ interface DiaryEntry {
   content: string;
   uid: string;
   mediaUrl?: string;
-  timestamp: { toDate: () => Date }; // Firestore Timestampの簡易的な型
-  userName?: string;
-  userIconUrl?: string;
+  timestamp: { toDate: () => Date };
+}
+
+interface DiaryWithUser extends DiaryEntry {
+  userName: string;
+  userIconUrl: string;
   userPhoneNumber?: string;
 }
-// --- ヘルパーコンポーネント: メディア表示 ---
+
+// メディア表示コンポーネント
 const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   if (!mediaUrl) return null;
 
-  // URLの拡張子を見て、メディアの種類を判定
-  if (/\.(jpe?g|png|gif|webp)/i.test(mediaUrl)) {
+  if (/.(jpe?g|png|gif|webp)/i.test(mediaUrl)) {
     return <img src={mediaUrl} alt="添付画像" style={{ objectFit: 'contain', maxWidth: '70%', maxHeight: '400px', margin: '0 auto', display: 'block' }} />;
   }
 
-  if (/\.(mp4|mov|webm)/i.test(mediaUrl)) {
+  if (/.(mp4|mov|webm)/i.test(mediaUrl)) {
     return <video src={mediaUrl} controls style={{ maxWidth: '70%', maxHeight: '400px', margin: '0 auto', display: 'block' }} />;
   }
 
   return null;
 };
 
-export default function HomePage() {
+// メインコンポーネント
+export default function MenuUserPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-
-  // --- Hooksは必ずここで全て呼ぶ ---
-  const [diaries, setDiaries] = useState<DiaryEntry[]>([]);
+  const params = useParams();
+  const userId = params.userId as string;
+  const [diaries, setDiaries] = useState<DiaryWithUser[]>([]);
   const [dataLoading, setDataLoading] = useState(true);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [diaryToDelete, setDiaryToDelete] = useState<string | null>(null);
   const [showToast, setShowToast] = useState(false);
+  const [targetUserName, setTargetUserName] = useState<string>("");
 
-  // 認証チェック
   useEffect(() => {
     if (!loading && !user) {
       router.replace('/login');
     }
   }, [loading, user, router]);
 
-  // 日記取得
   useEffect(() => {
-    if (!user) return;
+    if (!user || !userId) return;
 
-    const fetchDiaries = async () => {
+    const fetchDiariesWithUser = async () => {
       setDataLoading(true);
-
       try {
         // 現在のユーザーのgroupIdを取得
         const currentUserDoc = await getDoc(doc(db, "users", user.uid));
@@ -76,62 +75,71 @@ export default function HomePage() {
           return;
         }
 
-        //users を取得して userMap を作る（同じgroupIdのユーザーのみ）
+        // 対象ユーザーの情報を取得
+        const targetUserDoc = await getDoc(doc(db, "users", userId));
+        const targetUserData = targetUserDoc.data() as any;
+        
+        if (!targetUserData || targetUserData.groupId !== currentGroupId) {
+          console.warn('指定されたユーザーが見つからないか、同じグループに属していません');
+          setDiaries([]);
+          setDataLoading(false);
+          return;
+        }
+
+        setTargetUserName(targetUserData.name || "不明なユーザー");
+
+        // ユーザー情報を一括取得（同じgroupIdのユーザーのみ）
         const usersSnap = await getDocs(collection(db, "users"));
         const userMap: Record<string, { name: string; iconUrl: string; phoneNumber?: string; groupId?: string }> = {};
 
         usersSnap.forEach((u) => {
           const data = u.data() as any;
-          // 同じgroupIdのユーザーのみをuserMapに追加
           if (data.groupId === currentGroupId) {
             userMap[u.id] = {
-              name: data.name || "不明なユーザー",
-              iconUrl: data.iconUrl || "/emoji.png", // なければデフォルト画像
+              name: data.name || "不明なユーザ",
+              iconUrl: data.iconUrl || "",
               phoneNumber: data.phoneNumber || "",
               groupId: data.groupId,
             };
           }
         });
 
-        //diary を取得する
+        // 日記を一括取得（指定されたユーザーのみ）
         const q = query(collection(db, "diary"), orderBy("timestamp", "desc"));
-        const diarySnap = await getDocs(q);
+        const snapshot = await getDocs(q);
 
-        // 同じgroupIdのユーザーの投稿のみをフィルタリング
-        const fetchedDiaries: DiaryEntry[] = [];
-        diarySnap.docs.forEach((docSnap) => {
-          const data = docSnap.data() as any;
-          const userData = userMap[data.uid];
-          
-          // 同じgroupIdのユーザーの投稿のみを追加
-          if (userData) {
-            fetchedDiaries.push({
+        // ユーザー情報を結合（指定されたユーザーの投稿のみ）
+        const diariesWithUser: DiaryWithUser[] = snapshot.docs
+          .map(docSnap => {
+            const data = docSnap.data() as DiaryEntry;
+            // 指定されたユーザーの投稿のみを返す
+            if (data.uid !== userId) return null;
+            
+            const userData = userMap[data.uid];
+            if (!userData) return null;
+
+            return {
+              ...data,
               id: docSnap.id,
-              title: data.title,
-              content: data.content,
-              uid: data.uid,
-              mediaUrl: data.mediaUrl,
-              timestamp: data.timestamp,
               userName: userData.name,
               userIconUrl: userData.iconUrl,
               userPhoneNumber: userData.phoneNumber,
-            });
-          }
-        });
+            };
+          })
+          .filter((diary): diary is DiaryWithUser => diary !== null);
 
-        setDiaries(fetchedDiaries);
-
-      } catch (error) {
-        console.error(error);
+        setDiaries(diariesWithUser);
+      } catch (err) {
+        console.error("日記取得失敗:", err);
       } finally {
         setDataLoading(false);
       }
     };
 
-    fetchDiaries();
-  }, [user]);
+    fetchDiariesWithUser();
+  }, [user, userId]);
 
-  // 共有ボタン処理（投稿者の日記確認ページへのリンクを生成）
+  // 共有機能（投稿者の日記確認ページへのリンクを生成）
   const handleShare = (diaryUid: string) => {
     const shareUrl = `${window.location.origin}/menu?userId=${diaryUid}`;
     
@@ -189,27 +197,18 @@ export default function HomePage() {
     }
   }, [showToast]);
 
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      router.push('/login');
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  // 条件分岐 
   if (loading || !user) {
     return (
       <div>
-        <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
-        <main className="diary-card">
+        <Header title="日記確認" />
+        <main className="diary-card" style={{ padding: '10px' }}>
         </main>
         <Footer />
       </div>
     );
   }
 
+  // JSXのレンダリング
   return (
     <div>
       {/* 削除完了トースト */}
@@ -296,34 +295,29 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* ヘッダー */}
-      <Header title="ホーム" showLogout={true} onLogout={handleSignOut} />
+      <Header title={`${targetUserName}の日記`} />
 
-      {/* 日記部分 */}
-      <main className="diary-card">
-
-        {diaries.length === 0 && (
-          <p style={{ textAlign: 'center' }}></p>
+      <main className="diary-card" style={{ padding: '10px' }}>
+        {dataLoading && (
+          <p style={{ textAlign: 'center' }}>読み込み中...</p>
         )}
 
+        {!dataLoading && diaries.length === 0 && (
+          <p style={{ textAlign: 'center' }}>投稿がありません</p>
+        )}
+
+        {/*日記リストの表示*/}
         {diaries.map((diary) => (
-
-          <div key={diary.id}>
-
-            {/* 投稿者/アイコン */}
+          <div key={diary.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0' }}>
             <div className="card-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '10px' }}>
               <img
                 src={diary.userIconUrl}
                 alt={diary.userName}
-                className="icon"
-                style={{ width: '32px', height: '32px', marginRight: '8px', borderRadius: '50%', order: 1, objectFit: 'cover' }}
+                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%', order: 1, objectFit: 'cover' }}
               />
-              <span className="username" style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>
-                {diary.userName}
-              </span>
+              <span style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>{diary.userName}</span>
             </div>
 
-            {/* タイトル/本文/メディア*/}
             <div className="card-content">
               <h3 style={{ fontSize: '1.1em', margin: '5px 0' }}>{diary.title}</h3>
               <p>{diary.content}</p>
@@ -335,11 +329,18 @@ export default function HomePage() {
               )}
             </div>
 
-            {/* 日時/アクションボタン */}
-            <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
+            <div className="card-footer" style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginTop: '10px',
+              borderTop: '1px solid #eee',
+              paddingTop: '10px'
+            }}>
               <p style={{ fontSize: '0.8em', color: '#657786' }}>
                 投稿日時: {diary.timestamp.toDate().toLocaleString()}
               </p>
+
               <div>
                 {user && diary.uid === user.uid && (
                   <button 
@@ -357,20 +358,24 @@ export default function HomePage() {
                   </button>
                 )}
                 {user && diary.uid !== user.uid && diary.userPhoneNumber ? (
-                  <a href={`tel:${diary.userPhoneNumber}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                  <a href={`tel:${diary.userPhoneNumber}`} style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
                 ) : user && diary.uid !== user.uid && !diary.userPhoneNumber ? (
-                  <span className="btn-icon" style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
+                  <span style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
                 ) : null}
-                <button onClick={() => handleShare(diary.uid)} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
+                <button
+                  onClick={() => handleShare(diary.uid)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}
+                >
+                  🔗
+                </button>
               </div>
             </div>
           </div>
         ))}
       </main>
 
-      {/* フッター */}
       <Footer />
-
     </div>
   );
 }
+

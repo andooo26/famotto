@@ -50,7 +50,7 @@ export default function LoginPage() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'linear-gradient(135deg, #f7e5c3ff 0%, #f7e5c3ff 100%)',
+            background: 'linear-gradient(135deg, #f8e8d0 0%, #f8e8d0 100%)',
             margin: 0,
             padding: 0
         }}
@@ -80,13 +80,45 @@ export default function LoginPage() {
             maxWidth: 420,
             position: 'relative',
             zIndex: 1,
+            backgroundColor: '#fff',
+            borderRadius: '16px',
+            padding: '3rem 2rem',
+            boxShadow: '0 8px 24px rgba(0, 0, 0, 0.15)',
             }}
         >
-            <h1 style={{ fontSize: '4rem', textShadow: '2px 2px 4px rgba(0,0,0,0.3)', margin: 0 }}>
+            <h1 style={{ 
+                fontSize: '3.5rem', 
+                margin: 0, 
+                color: '#fcdf98',
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                fontFamily: 'inherit'
+            }}>
             Famotto
             </h1>
+            <h2 style={{
+                fontSize: '1.25rem',
+                margin: 0,
+                color: '#666',
+                fontWeight: 600,
+                letterSpacing: '-0.02em',
+                lineHeight: '1.6',
+                fontFamily: 'inherit'
+            }}>
+                ファミリーの<br></br>コミュニケーションをもっと
+            </h2>
 
-            {error && <div>{error}</div>}
+            {error && (
+                <div style={{ 
+                    color: '#e74c3c', 
+                    padding: '0.75rem', 
+                    backgroundColor: '#fee',
+                    borderRadius: '8px',
+                    width: '100%'
+                }}>
+                    {error}
+                </div>
+            )}
 
             <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
             <button

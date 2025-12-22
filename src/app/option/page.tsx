@@ -1,10 +1,12 @@
 "use client";
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import Image from 'next/image'; 
 import './../globals.css';
 import './../../lib/firebase';
 import { firestoreUtils, storageUtils } from './../../lib/firebaseUtils';
 import { getAuth } from 'firebase/auth';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 export default function DiaryPage() {
 
@@ -12,7 +14,45 @@ export default function DiaryPage() {
     const [previewUrl, setPreviewUrl] = useState("/icon.jpg"); //こっちも
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [userName, setUserName] = useState("");
+    const [phoneNumber, setPhoneNumber] = useState("");
     const [groupUrl, setGroupUrl] = useState(""); //groupUrl表示させたい
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState("");
+
+    useEffect(() => {
+        const auth = getAuth();
+        const unsubscribe = auth.onAuthStateChanged(async (user) => {
+            if (!user) return;
+            
+            try {
+                const uid = user.uid;
+                const userData = await firestoreUtils.getCollectionWhere("users", "uid", "==", uid);
+                if (userData.length > 0) {
+                    const userInfo = userData[0] as any;
+                    // グループIDを設定
+                    if (userInfo.groupId) {
+                        setGroupUrl(`https://famotto.and0.net/invite?id=${userInfo.groupId}`);
+                    }
+                    // ユーザー名を設定
+                    if (userInfo.name) {
+                        setUserName(userInfo.name);
+                    }
+                    // 電話番号を設定
+                    if (userInfo.phoneNumber) {
+                        setPhoneNumber(userInfo.phoneNumber);
+                    }
+                    // アイコンURLを設定
+                    if (userInfo.iconUrl) {
+                        setHeaderIcon(userInfo.iconUrl);
+                        setPreviewUrl(userInfo.iconUrl);
+                    }
+                }
+            } catch (error) {
+                console.error("ユーザーデータ取得エラー", error);
+            }
+        });
+        return () => unsubscribe();
+    }, []);
 
     const FileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -29,6 +69,10 @@ export default function DiaryPage() {
     const handleSave = async () => {
         const auth = getAuth();
         const user = auth.currentUser;
+        if (!user) {
+            alert("ログインが必要です。");
+            return;
+        }
         const uid = user.uid;
 
         try {
@@ -38,8 +82,9 @@ export default function DiaryPage() {
                 return;
             }
             const targetDocId = users[0].id;
+            const userInfo = users[0] as any;
 
-            let iconUrl = users[0].iconUrl ?? null;
+            let iconUrl = userInfo.iconUrl ?? null;
             if (imageFile) {
                 const path = `users/${uid}/icon.png`;
                 iconUrl = await storageUtils.uploadFile(path, imageFile);
@@ -47,33 +92,73 @@ export default function DiaryPage() {
 
             await firestoreUtils.updateDocument("users", targetDocId, {
                 name: userName,
+                phoneNumber: phoneNumber,
                 iconUrl: iconUrl,
                 updatedAt: new Date(),
             });
-            alert("保存しました！");
+            setToastMessage("保存しました！");
+            setShowToast(true);
         } catch (error) {
             console.error(error);
             alert("保存中にエラーが発生しました");
         }
     };
 
+    const handleCopyLink = async () => {
+        if (!groupUrl) {
+            return;
+        }
+        try {
+            await navigator.clipboard.writeText(groupUrl);
+            setToastMessage("招待リンクをコピーしました！");
+            setShowToast(true);
+        } catch (error) {
+            console.error("コピーに失敗しました", error);
+        }
+    };
+
+    useEffect(() => {
+        if (showToast) {
+            const timer = setTimeout(() => {
+                setShowToast(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showToast]);
+
     return (
         <div>
-            <header className="header">
-                <Image src={headerIcon} alt="" width={50} height={40} style={{ borderRadius: '50%', objectFit: "cover" }} />
-                <h1 className="text-5xl">Fammoto</h1>
-            </header>
+            <Header title="設定" />
+
+            {showToast && (
+                <div 
+                    className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+                    style={{
+                        backgroundColor: '#fcdf98',
+                        color: '#444',
+                        fontWeight: 'bold',
+                        transform: 'translateX(-50%)',
+                    }}
+                >
+                    {toastMessage}
+                </div>
+            )}
 
             <main className="">
-                <div className='flex  mt-3 pl-10'>
-                    <Image src="/aoption.png" alt="" width={40} height={40} />
-                    <h2 className="text-3xl">設定</h2>
-                </div>
                 <div className="flex flex-col items-center  m-10 bg-white rounded-xl shadow-2xl">
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
-                            <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center">
-                                <Image src={previewUrl} alt="" fill={true} style={{ borderRadius: '50%', objectFit: 'cover' }} />
+                            <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center overflow-hidden">
+                                <img 
+                                    src={previewUrl} 
+                                    alt="" 
+                                    style={{ 
+                                        width: '100%', 
+                                        height: '100%', 
+                                        borderRadius: '50%', 
+                                        objectFit: 'cover' 
+                                    }} 
+                                />
                             </div>
                             <form action="/" method="post" encType="multipart/form-data">
                                 <input type="file" accept="image/*" id="file-upload-input" onChange={FileChange} style={{ display: 'none' }} />
@@ -83,21 +168,52 @@ export default function DiaryPage() {
                             </form>
                         </div>
                     </div>
-                    <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl' placeholder="新しいユーザー名を入力" value={userName}
+                    <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
                         onChange={(e) => setUserName(e.target.value)}></input>
-                    <button onClick={handleSave} className='mt-7 text-xl w-30 bg-purple-300 rounded-full'>✓保存する</button>
-                    <div className='flex mt-7 mb-7'>
+                    <div className='flex items-center gap-3 mt-7'>
                         <p className='text-2xl'>招待リンク　</p>
-                        <p className='text-2xl text-gray-400'>{groupUrl}</p>
+                        <p className='text-2xl text-gray-400'>{groupUrl || "リンクがありません"}</p>
+                        {groupUrl && (
+                            <button
+                                onClick={handleCopyLink}
+                                className="px-4 py-2 text-sm rounded-full transition hover:opacity-80"
+                                style={{
+                                    backgroundColor: '#fcdf98',
+                                    color: '#444',
+                                    fontWeight: 'bold',
+                                    border: 'none',
+                                }}
+                            >
+                                コピー
+                            </button>
+                        )}
                     </div>
+                    <div className='flex items-center gap-3 mt-7 mb-7'>
+                        <p className='text-2xl'>わたしの電話番号</p>
+                        <input 
+                            type="tel" 
+                            className='text-xl border-2 w-60 placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            placeholder="電話番号を入力" 
+                            value={phoneNumber}
+                            onChange={(e) => setPhoneNumber(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        onClick={handleSave}
+                        className="mt-7 mb-7 text-xl w-30 rounded-full"
+                        style={{
+                            backgroundColor: '#fcdf98',
+                            color: '#444',
+                            fontWeight: 'bold',
+                            border: 'none',
+                        }}
+                    >
+                        保存する
+                    </button>
                 </div>
             </main>
 
-            <footer className="footer">
-                <a href="./diary"><Image src="/add.png" alt="" width={60} height={60} /><span>日記追加</span></a>
-                <a href="./theme"><Image src="/theme.png" alt="" width={60} height={60} /><span>今日のお題</span></a>
-                <a href="./menu"><Image src="/menu.png" alt="" width={60} height={60} /><span>日記確認</span></a>
-            </footer>
+            <Footer />
         </div>
     )
 }

@@ -1,8 +1,9 @@
 'use client';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { db, auth } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, addDoc, serverTimestamp, doc, getDoc } from 'firebase/firestore';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
 
 const storage = getStorage();
@@ -22,10 +23,13 @@ const SpeechRecognition =
 
 //コンポーネント
 export default function DiaryForm() {
+  const router = useRouter();
   const [content, setContent] = useState('');
   const [file, setFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [isRecording, setIsRecording] = useState(false);
+  const [showToast, setShowToast] = useState(false);
   const recognitionRef = useRef<any>(null);
 
   const startSpeechRecognition = () => {
@@ -83,19 +87,26 @@ export default function DiaryForm() {
       // アップロードの進行状況を確認
       uploadTask.on(
         'state_changed',
-        () => { },
+        (snapshot) => {
+          // 進捗率を計算
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          setUploadProgress(progress);
+        },
         () => {
           setIsUploading(false);
+          setUploadProgress(0);
           reject('ファイルアップロードに失敗しました');
         },
         () => {
           getDownloadURL(uploadTask.snapshot.ref)
             .then((downloadURL) => {
               setIsUploading(false);
+              setUploadProgress(0);
               resolve(downloadURL);
             })
             .catch(() => {
               setIsUploading(false);
+              setUploadProgress(0);
               reject('ダウンロードURL取得失敗');
             });
         }
@@ -117,23 +128,43 @@ export default function DiaryForm() {
     let mediaUrl: string | null = null;
 
     try {
+      // ユーザーのgroupIdを取得
+      const userDocRef = doc(db, 'users', user.uid);
+      const userDocSnap = await getDoc(userDocRef);
+      const userData = userDocSnap.data() as { groupId?: string } | undefined;
+      const groupId = userData?.groupId;
+
       if (file) mediaUrl = await uploadFile(file);
 
-      const docRef = await addDoc(collection(db, 'diary'), {
+      await addDoc(collection(db, 'diary'), {
         content,
         mediaUrl,
         uid: user.uid,
+        groupId: groupId || null,
         timestamp: serverTimestamp(),
       });
 
-      alert('日記を追加しました: ' + docRef.id);
-
-      setContent('');
-      setFile(null);
+      // トーストを表示
+      setShowToast(true);
+      
+      // トースト表示後、少し遅延してからルートディレクトリに遷移
+      setTimeout(() => {
+        router.push('/');
+      }, 1500);
     } catch (e) {
       alert('書き込みに失敗しました');
     }
   };
+
+  // トーストを3秒後に非表示にする
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [showToast]);
 
   /* ファイル選択 */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -148,7 +179,20 @@ export default function DiaryForm() {
 
   return (
     <main className="">
-      <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto">
+      {showToast && (
+        <div 
+          className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+          style={{
+            backgroundColor: '#fcdf98',
+            color: '#444',
+            fontWeight: 'bold',
+            transform: 'translateX(-50%)',
+          }}
+        >
+          投稿完了
+        </div>
+      )}
+      <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto relative">
 
        {/* 内容 */}
 <div className="mb-6">
@@ -170,10 +214,12 @@ export default function DiaryForm() {
       p-3 
       rounded-xl 
       w-full 
-      h-15
+      min-h-[120px]
+      resize-y
       focus:outline-none 
       focus:ring-2 
-      focus:ring-blue-400 
+      focus:ring-yellow-400 
+      focus:border-yellow-400
       shadow-sm 
       transition
     "
@@ -183,14 +229,6 @@ export default function DiaryForm() {
   {content.length}/15
 </div>
 </div>
-
-
-        {/* 選択されたファイル */}
-        {file && (
-          <p className="text-xl mb-3 text-700">
-            選択中のファイル：{file.name}
-          </p>
-        )}
 
         {/* file input（非表示） */}
         <input
@@ -202,17 +240,36 @@ export default function DiaryForm() {
           hidden
         />
 
-        {/* アップロード中 */}
-        {isUploading && <p className="text-red-500 mb-3">アップロード中</p>}
-        {/*プレビュー*/}
+        {/* アップロード中のプログレスバー */}
+        {isUploading && (
+          <div className="mb-3 w-full">
+            <div className="w-full bg-gray-200 rounded-full h-2.5">
+              <div 
+                className="h-2.5 rounded-full transition-all duration-300"
+                style={{ 
+                  width: `${uploadProgress}%`,
+                  backgroundColor: '#fcdf98'
+                }}
+              ></div>
+            </div>
+            <p className="text-sm text-gray-600 mt-1 text-center">{Math.round(uploadProgress)}%</p>
+          </div>
+        )}
+
+        {/* 選択されたファイルとプレビュー */}
         {file && (
-          <div className="mt-4 w-full flex justify-center">
-            <div className="max-h-40 overflow-y-auto p-2 border rounded-lg bg-gray-50">
+          <div className="mb-6">
+            <p className="text-xl mb-3 text-gray-700">
+              選択中のファイル：{file.name}
+            </p>
+            {/*プレビュー*/}
+            <div className="w-full flex justify-center">
+              <div className="max-h-48 max-w-full overflow-auto p-2 border rounded-lg bg-gray-50">
               {file.type.startsWith('image/') && (
                 <img
                   src={URL.createObjectURL(file)}
                   alt="preview"
-                  className="max-w-full h-auto rounded"
+                    className="max-w-full max-h-44 h-auto rounded object-contain"
                 />
               )}
 
@@ -220,26 +277,25 @@ export default function DiaryForm() {
                 <video
                   src={URL.createObjectURL(file)}
                   controls
-                  className="w-60 rounded"
+                    className="max-w-full max-h-44 rounded"
                 />
               )}
+              </div>
             </div>
           </div>
         )}
 
-        <div className="flex justify-evenly fixed bottom-24 left-0 w-full px-10 bg-white z-10">
-          {/* ボタン3つ */}
-          <div className="flex justify-evenly">
+        {/* ボタン3つ - 右下に配置 */}
+        <div className="flex justify-end gap-4 mt-6 pb-4">
             {/* 画像・動画追加 */}
             <button
               onClick={() => fileInputRef.current?.click()}
               type="button"
               disabled={isRecording}
+            className="flex flex-col items-center"
             >
-              <div className="flex flex-col items-center">
                 <Image src="/upload.jpg" alt="" width={50} height={60} />
-                <span>動画/画像　</span>
-              </div>
+            <span>動画/画像</span>
             </button>
 
             {/* 音声認識*/}
@@ -252,31 +308,30 @@ export default function DiaryForm() {
                   startSpeechRecognition();
                 }
               }}
+            className="flex flex-col items-center"
             >
-              <div className="flex flex-col items-center">
                 <Image src="/mic.png" alt="" width={50} height={60} />
-                <span>{isRecording ? "録音停止　" : "音声入力　"}</span>
-              </div>
+            <span>{isRecording ? "録音停止" : "音声入力"}</span>
             </button>
-
-            {/* 録音中*/}
-            {isRecording && (
-              <p className="text-red-600 text-center mt-2">録音中…</p>
-            )}
 
             {/* 投稿 */}
             <button
               onClick={handleSubmit}
               type="button"
-              disabled={isRecording}>
-
-              <div className="flex flex-col items-center">
+            disabled={isRecording}
+            className="flex flex-col items-center"
+          >
                 <Image src="/check.png" alt="" width={50} height={60} />
                 <span>投稿</span>
+          </button>
               </div>
-            </button>
+
+        {/* 録音中表示 */}
+        {isRecording && (
+          <div className="absolute bottom-2 right-2">
+            <p className="text-red-600 text-sm">録音中…</p>
           </div>
-        </div>
+        )}
       </div>
     </main>
   );
