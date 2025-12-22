@@ -44,7 +44,7 @@ export const signInWithGoogle = async () => {
           //groupsコレクション作成
           const groupData = {
             groupId: groupId,
-            groupUrl: 'https://fam.and0.net/invite?id=' + groupId,
+            groupUrl: 'localhost:3000/invite?id=' + groupId,
             members: [user.uid],
             createdAt: serverTimestamp(),
           };

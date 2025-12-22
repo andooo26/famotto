@@ -33,7 +33,7 @@ export default function DiaryPage() {
                     const userInfo = userData[0] as any;
                     // グループIDを設定
                     if (userInfo.groupId) {
-                        setGroupUrl(`https://fam.and0.net/invite?id=${userInfo.groupId}`);
+                        setGroupUrl(`localhost:3000/invite?id=${userInfo.groupId}`);
                     }
                     // ユーザー名を設定
                     if (userInfo.name) {

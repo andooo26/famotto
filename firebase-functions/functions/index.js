@@ -152,7 +152,7 @@ export const sendJoinRequestMail = onDocumentUpdated(
     });
 
     const approveUrl =
-      `https://fam.and0.net/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
+      `http://localhost:3000/approve?groupId=${event.params.groupId}&uid=${requestUid}`;
 
     await transporter.sendMail({
       from: process.env.MAIL_ACCOUNT,
