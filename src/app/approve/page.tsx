@@ -27,7 +27,7 @@ export default function ApprovePage() {
 
         try {
             //グループ取得
-            const group = await firestoreUtils.getDocument("groups", groupId);
+            const group = await firestoreUtils.getDocument("groups", groupId) as { id: string; members?: string[]; [key: string]: any } | null;
             if (!group) {
                 alert("グループが存在しません");
                 return;
@@ -40,7 +40,7 @@ export default function ApprovePage() {
             }
 
             //申請ユーザー取得
-            const userDoc = await firestoreUtils.getDocument("users", requestUid);
+            const userDoc = await firestoreUtils.getDocument("users", requestUid) as { id: string; groupId?: string; [key: string]: any } | null;
             if (!userDoc) {
                 alert("ユーザーが存在しません");
                 return;
@@ -49,7 +49,7 @@ export default function ApprovePage() {
 
             //旧グループから削除
             if (oldGroupId && oldGroupId !== groupId) {
-            const oldGroup = await firestoreUtils.getDocument("groups", oldGroupId);
+            const oldGroup = await firestoreUtils.getDocument("groups", oldGroupId) as { id: string; members?: string[]; [key: string]: any } | null;
                 if (oldGroup) {
                     const set = new Set(oldGroup.members || []);
                     set.delete(requestUid);
