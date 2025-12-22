@@ -272,6 +272,14 @@ body {
  position: relative;
 }
 
+/* スマホ版で日記カードの横幅を大きく */
+@media (max-width: 768px) {
+ .diary-card > div {
+   width: 95%;
+   padding: 16px;
+ }
+}
+
 /* 日記カード内テキスト */
 .diary-card p {
  margin: 6px 0;
@@ -349,6 +357,13 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   padding: 20px;
   text-align: left;
+}
+
+/* スマホ版で今日のお題カードの横幅を大きく */
+@media (max-width: 768px) {
+  .card {
+    width: 98%;
+  }
 }
 
 @media (min-width: 768px) {

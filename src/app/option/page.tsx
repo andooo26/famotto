@@ -155,8 +155,8 @@ export default function DiaryPage() {
                 </div>
             )}
 
-            <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '20px' }}>
-                <div className="flex flex-col items-center m-4 sm:m-10 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
+            <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '10px' }}>
+                <div className="flex flex-col items-center m-2 sm:m-10 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
                             <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center overflow-hidden">
