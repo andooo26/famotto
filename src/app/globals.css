@@ -278,6 +278,12 @@ body {
    width: 95%;
    padding: 16px;
  }
+ 
+ /* 日記追加フォームのカードも同じサイズに */
+ .diary-form-card {
+   width: 95% !important;
+   margin: 8px !important;
+ }
 }
 
 /* 日記カード内テキスト */
@@ -308,7 +314,7 @@ body {
   bottom: 0;
   width: 100%;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-evenly;
   align-items: center;
   background-color: #fff;
   /* border-top: 1px solid #ccc; */

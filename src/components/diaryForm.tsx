@@ -178,7 +178,7 @@ export default function DiaryForm() {
 
 
   return (
-    <main className="">
+    <div style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
       {showToast && (
         <div 
           className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
@@ -192,7 +192,7 @@ export default function DiaryForm() {
           投稿完了
         </div>
       )}
-      <div className="m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto relative">
+      <div className="diary-form-card m-2 sm:m-10 bg-white rounded-xl shadow-2xl p-5 max-h-[calc(100vh-4rem)] overflow-y-auto relative" style={{ width: '100%', maxWidth: '800px' }}>
 
        {/* 内容 */}
 <div className="mb-6">
@@ -333,6 +333,6 @@ export default function DiaryForm() {
           </div>
         )}
       </div>
-    </main>
+    </div>
   );
 }

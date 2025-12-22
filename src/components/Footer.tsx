@@ -24,7 +24,9 @@ export default function Footer() {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
+    justifyContent: 'flex-start',
     opacity: isActive(path) ? 1 : 0.7,
+    flex: 1,
   });
 
   const diaryLinkStyle = {
@@ -37,33 +39,35 @@ export default function Footer() {
     display: 'flex',
     flexDirection: 'column' as const,
     alignItems: 'center',
+    justifyContent: 'flex-start',
     opacity: isActive('/diary') ? 1 : 0.7,
     padding: '8px 16px',
     borderRadius: '16px',
     backgroundColor: 'rgba(252, 223, 152, 0.5)',
+    flex: 1,
   };
 
   return (
     <footer className="footer">
-      <Link href="/" style={linkStyle('/')}>
-        <Image src="/home.png" alt="" width={60} height={60} />
-        <span>ホーム</span>
+      <Link href="/" style={{...linkStyle('/'), marginTop: '-16px'}}>
+        <Image src="/home.png" alt="" width={90} height={90} />
+        <span style={{ marginTop: '5px' }}>ホーム</span>
       </Link>
       <Link href="/theme" style={linkStyle('/theme')}>
         <Image src="/theme.png" alt="" width={60} height={60} />
-        <span>今日のお題</span>
+        <span style={{ marginTop: '19px' }}>今日のお題</span>
       </Link>
       <Link href="/diary" style={diaryLinkStyle}>
         <Image src="/add.png" alt="" width={60} height={60} />
-        <span>日記追加</span>
+        <span style={{ marginTop: '19px' }}>日記追加</span>
       </Link>
       <Link href="/menu" style={linkStyle('/menu')}>
         <Image src="/menu.png" alt="" width={60} height={60} />
-        <span>日記確認</span>
+        <span style={{ marginTop: '19px' }}>日記確認</span>
       </Link>
       <Link href="/option" style={linkStyle('/option')}>
         <Image src="/option.png" alt="" width={60} height={60} />
-        <span>設定</span>
+        <span style={{ marginTop: '19px' }}>設定</span>
       </Link>
     </footer>
   );
