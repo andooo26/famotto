@@ -27,7 +27,7 @@ export default function InvitePage() {
 
             try {
                 // === グループ情報を取得 ==========
-                const groupDoc = await firestoreUtils.getDocument("groups", newGroupId);
+                const groupDoc = await firestoreUtils.getDocument("groups", newGroupId) as { id: string; joinRequests?: Record<string, any>; [key: string]: any } | null;
                 if (!groupDoc) {
                     alert("グループが存在しません");
                     return;
