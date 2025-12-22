@@ -145,6 +145,11 @@ body {
   Famottoヘッダー
 ----------------------------------- */
 .header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -153,11 +158,16 @@ body {
   font-size: 24px;
   font-weight: bold;
   background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   /* border-bottom: 1px solid #ccc; */
 }
 
 /* スマホ版ヘッダー */
 @media (max-width: 768px) {
+  .header {
+    padding: 24px 16px; /* スマホでは少し小さめに */
+  }
+  
   .header-pc,
   .header-title-pc,
   .header-logout-pc,
@@ -168,10 +178,27 @@ body {
   .header-mobile {
     display: flex !important;
   }
+  
+  .header-logout-mobile {
+    display: block !important;
+  }
+  
+  /* スマホ版のコンテンツ上部余白 */
+  .diary-card {
+    padding-top: 100px !important; /* スマホでは少し小さめに */
+  }
+  
+  .content {
+    padding-top: 100px !important; /* スマホでは少し小さめに */
+  }
 }
 
 /* PC版ヘッダー */
 @media (min-width: 769px) {
+  .header {
+    padding: 32px 16px; /* PC版は大きめに */
+  }
+  
   .header-mobile {
     display: none !important;
   }
@@ -181,6 +208,26 @@ body {
   .header-logout-pc,
   .header-spacer-pc {
     display: block !important;
+  }
+  
+  /* PC版のコンテンツ上部余白 */
+  .diary-card {
+    padding-top: 120px !important; /* PC版は大きめに */
+  }
+  
+  .content {
+    padding-top: 140px !important; /* PC版は大きめに */
+  }
+  
+  .main-content {
+    padding-top: 140px !important; /* PC版は大きめに */
+  }
+}
+
+/* スマホ版のメインコンテンツ */
+@media (max-width: 768px) {
+  .main-content {
+    padding-top: 100px !important; /* スマホでは少し小さめに */
   }
 }
 
@@ -210,6 +257,7 @@ body {
  align-items: center;
  gap: 16px;
  padding: 16px;
+ padding-top: 120px; /* 固定ヘッダーの下に表示されるように */
  padding-bottom: 100px; /* フッターが重ならないように */
 }
 
@@ -222,6 +270,14 @@ body {
  padding: 12px;
  text-align: left;
  position: relative;
+}
+
+/* スマホ版で日記カードの横幅を大きく */
+@media (max-width: 768px) {
+ .diary-card > div {
+   width: 95%;
+   padding: 16px;
+ }
 }
 
 /* 日記カード内テキスト */
@@ -283,6 +339,7 @@ body {
   align-items: center;
   min-height: calc(100vh - 160px);
   padding: 24px;
+  padding-top: 140px; /* 固定ヘッダーの下に表示されるように */
   padding-bottom: 140px;
 }
 
@@ -300,6 +357,13 @@ body {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
   padding: 20px;
   text-align: left;
+}
+
+/* スマホ版で今日のお題カードの横幅を大きく */
+@media (max-width: 768px) {
+  .card {
+    width: 98%;
+  }
 }
 
 @media (min-width: 768px) {

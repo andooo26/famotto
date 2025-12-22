@@ -35,9 +35,19 @@ export default function ThemePage() {
         });
         return () => unsub();
     }, []);
+
+    const handleSignOut = async () => {
+        try {
+            await signOut();
+            router.push('/login');
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <div>
-            <Header title="今日のお題" />
+            <Header title="今日のお題" showLogout={true} onLogout={handleSignOut} />
                 
                 {/* カード */}
                 <main className="content">

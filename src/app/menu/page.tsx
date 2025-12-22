@@ -6,6 +6,7 @@ import { db, storage } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import { getDownloadURL, ref as storageRef } from 'firebase/storage';
 import { firestoreUtils } from '@/lib/firebaseUtils';
+import { signOut } from '@/lib/auth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -204,10 +205,19 @@ function MenuPageContent() {
     }
   }, [showToast]);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (loading || !user) {
     return (
       <div>
-        <Header title="日記確認" />
+        <Header title="日記確認" showLogout={true} onLogout={handleSignOut} />
         <main className="diary-card" style={{ padding: '10px' }}>
         </main>
         <Footer />
@@ -308,7 +318,7 @@ function MenuPageContent() {
         </div>
       )}
 
-      <Header title="日記確認" />
+      <Header title="日記確認" showLogout={true} onLogout={handleSignOut} />
 
       <main className="diary-card" style={{ padding: '10px' }}>
 
@@ -409,10 +419,21 @@ function MenuPageContent() {
 
 // エクスポート用コンポーネント（Suspenseでラップ）
 export default function MenuPage() {
+  const router = useRouter();
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <Suspense fallback={
       <div>
-        <Header title="日記確認" />
+        <Header title="日記確認" showLogout={true} onLogout={handleSignOut} />
         <main className="diary-card" style={{ padding: '10px' }}>
           <p style={{ textAlign: 'center' }}>読み込み中...</p>
         </main>

@@ -10,7 +10,7 @@ interface HeaderProps {
 
 export default function Header({ title, showLogout = false, onLogout }: HeaderProps) {
   return (
-    <header className="header" style={{ position: 'relative' }}>
+    <header className="header">
       {/* PC版: 左にFamotto、中央にタイトル、右にログアウト */}
       <div className="header-pc" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Link href="/">
@@ -54,7 +54,7 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
         <div className="header-spacer-pc" style={{ width: '100px' }}></div>
       )}
       
-      {/* スマホ版: 中央にFamotto、右にタイトル */}
+      {/* スマホ版: 中央にFamotto、右にログアウトボタン */}
       <div className="header-mobile" style={{ display: 'none', position: 'relative', width: '100%', alignItems: 'center' }}>
         <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
           <Link href="/">
@@ -67,16 +67,26 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
             }}>Famotto</span>
           </Link>
         </div>
-        {title && (
-          <div style={{ 
-            position: 'absolute',
-            right: '16px',
-            fontSize: '14px',
-            color: '#666',
-            fontWeight: 500
-          }}>
-            {title}
-          </div>
+        {showLogout && onLogout ? (
+          <button
+            className="header-logout-mobile"
+            onClick={onLogout}
+            style={{
+              position: 'absolute',
+              right: '16px',
+              background: 'none',
+              border: '1px solid #ccc',
+              borderRadius: '4px',
+              padding: '6px 12px',
+              cursor: 'pointer',
+              fontSize: '12px',
+              color: '#333',
+            }}
+          >
+            ログアウト
+          </button>
+        ) : (
+          <div style={{ width: '80px' }}></div>
         )}
       </div>
     </header>
