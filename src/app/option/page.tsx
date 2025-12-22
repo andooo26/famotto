@@ -195,7 +195,11 @@ export default function DiaryPage() {
                             className='text-xl border-2 w-60 placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
                             placeholder="電話番号を入力" 
                             value={phoneNumber}
-                            onChange={(e) => setPhoneNumber(e.target.value)}
+                            onChange={(e) => {
+                                // 数値のみを受け付ける
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                setPhoneNumber(value);
+                            }}
                         />
                     </div>
                     <button
