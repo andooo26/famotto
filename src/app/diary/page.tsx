@@ -28,7 +28,7 @@ export default function DiaryPage() {
         <div>
             <Header title="日記追加" showLogout={true} onLogout={handleSignOut} />
 
-            <main className="main-content" style={{ padding: 20 }}>
+            <main className="main-content" style={{ padding: 20, paddingBottom: '120px' }}>
                 <DiaryForm />
             </main>
 

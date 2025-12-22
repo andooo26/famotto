@@ -143,19 +143,21 @@ export default function DiaryPage() {
 
             {showToast && (
                 <div 
-                    className="fixed top-20 left-1/2 z-50 px-6 py-3 rounded-full shadow-lg animate-fade-in"
+                    className="fixed top-20 left-1/2 px-6 py-3 rounded-full shadow-lg animate-fade-in toast-message"
                     style={{
                         backgroundColor: '#fcdf98',
                         color: '#444',
                         fontWeight: 'bold',
                         transform: 'translateX(-50%)',
+                        zIndex: 1001,
+                        whiteSpace: 'nowrap',
                     }}
                 >
                     {toastMessage}
                 </div>
             )}
 
-            <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '10px' }}>
+            <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '10px', paddingBottom: '120px' }}>
                 <div className="flex flex-col items-center m-2 sm:m-10 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
