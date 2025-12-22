@@ -109,24 +109,23 @@ export default function MenuUserPage() {
         const snapshot = await getDocs(q);
 
         // ユーザー情報を結合（指定されたユーザーの投稿のみ）
-        const diariesWithUser: DiaryWithUser[] = snapshot.docs
-          .map(docSnap => {
-            const data = docSnap.data() as DiaryEntry;
-            // 指定されたユーザーの投稿のみを返す
-            if (data.uid !== userId) return null;
-            
-            const userData = userMap[data.uid];
-            if (!userData) return null;
+        const diariesWithUser: DiaryWithUser[] = [];
+        snapshot.docs.forEach(docSnap => {
+          const data = docSnap.data() as DiaryEntry;
+          // 指定されたユーザーの投稿のみを追加
+          if (data.uid !== userId) return;
+          
+          const userData = userMap[data.uid];
+          if (!userData) return;
 
-            return {
-              ...data,
-              id: docSnap.id,
-              userName: userData.name,
-              userIconUrl: userData.iconUrl,
-              userPhoneNumber: userData.phoneNumber,
-            };
-          })
-          .filter((diary): diary is DiaryWithUser => diary !== null);
+          diariesWithUser.push({
+            ...data,
+            id: docSnap.id,
+            userName: userData.name,
+            userIconUrl: userData.iconUrl,
+            userPhoneNumber: userData.phoneNumber,
+          });
+        });
 
         setDiaries(diariesWithUser);
       } catch (err) {

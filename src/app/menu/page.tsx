@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { db, storage } from '@/lib/firebase';
@@ -39,8 +39,8 @@ const MediaRenderer: React.FC<{ mediaUrl: string }> = ({ mediaUrl }) => {
   return null;
 };
 
-// メインコンポーネント
-export default function MenuPage() {
+// メインコンポーネント（useSearchParamsを使用する部分）
+function MenuPageContent() {
   const { user, loading } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -112,23 +112,22 @@ export default function MenuPage() {
         const snapshot = await getDocs(q);
 
         // ユーザー情報を結合
-        const diariesWithUser: DiaryWithUser[] = snapshot.docs
-          .map(docSnap => {
-            const data = docSnap.data() as DiaryEntry;
-            const userData = userMap[data.uid];
-            
-            // 同じgroupIdのユーザーの投稿のみを返す
-            if (!userData) return null;
+        const diariesWithUser: DiaryWithUser[] = [];
+        snapshot.docs.forEach(docSnap => {
+          const data = docSnap.data() as DiaryEntry;
+          const userData = userMap[data.uid];
+          
+          // 同じgroupIdのユーザーの投稿のみを追加
+          if (!userData) return;
 
-            return {
-              ...data,
-              id: docSnap.id,
-              userName: userData.name,
-              userIconUrl: userData.iconUrl,
-              userPhoneNumber: userData.phoneNumber,
-            };
-          })
-          .filter((diary): diary is DiaryWithUser => diary !== null);
+          diariesWithUser.push({
+            ...data,
+            id: docSnap.id,
+            userName: userData.name,
+            userIconUrl: userData.iconUrl,
+            userPhoneNumber: userData.phoneNumber,
+          });
+        });
 
         setDiaries(diariesWithUser);
       } catch (err) {
@@ -405,5 +404,22 @@ export default function MenuPage() {
 
       <Footer />
     </div>
+  );
+}
+
+// エクスポート用コンポーネント（Suspenseでラップ）
+export default function MenuPage() {
+  return (
+    <Suspense fallback={
+      <div>
+        <Header title="日記確認" />
+        <main className="diary-card" style={{ padding: '10px' }}>
+          <p style={{ textAlign: 'center' }}>読み込み中...</p>
+        </main>
+        <Footer />
+      </div>
+    }>
+      <MenuPageContent />
+    </Suspense>
   );
 }
