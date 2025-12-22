@@ -27,14 +27,15 @@ export default function InvitePage() {
 
             try {
                 // === グループ情報を取得 ==========
-                const groupDoc = await firestoreUtils.getDocument("groups", newGroupId) as { id: string; joinRequests?: Record<string, any>; [key: string]: any } | null;
+                const groupDoc = await firestoreUtils.getDocument("groups", newGroupId);
                 if (!groupDoc) {
                     alert("グループが存在しません");
                     return;
                 }
 
                 // === joinRequests にフィールド追加 ==========
-                const joinRequests = groupDoc.joinRequests || {};
+                const groupData = groupDoc as { id: string; joinRequests?: Record<string, any>; [key: string]: any };
+                const joinRequests = groupData.joinRequests || {};
 
                 joinRequests[uid] = {
                     uid,
