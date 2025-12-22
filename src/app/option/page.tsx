@@ -144,8 +144,8 @@ export default function DiaryPage() {
                 </div>
             )}
 
-            <main className="">
-                <div className="flex flex-col items-center  m-10 bg-white rounded-xl shadow-2xl">
+            <main className="" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '20px' }}>
+                <div className="flex flex-col items-center m-4 sm:m-10 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
                             <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center overflow-hidden">
@@ -168,15 +168,31 @@ export default function DiaryPage() {
                             </form>
                         </div>
                     </div>
-                    <input type="text" className='text-3xl mx-auto border-2 w-60 mt-7 placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
+                    <input type="text" className='text-xl sm:text-3xl mx-auto border-2 w-full sm:w-60 mt-7 px-2 placeholder:text-base sm:placeholder:text-xl focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' placeholder="新しいユーザー名を入力" value={userName}
                         onChange={(e) => setUserName(e.target.value)}></input>
-                    <div className='flex items-center gap-3 mt-7'>
-                        <p className='text-2xl'>招待リンク　</p>
-                        <p className='text-2xl text-gray-400'>{groupUrl || "リンクがありません"}</p>
+                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 px-4 sm:px-0 w-full justify-center'>
+                        <p className='text-xl sm:text-2xl whitespace-nowrap'>わたしの電話番号</p>
+                        <input 
+                            type="tel" 
+                            className='text-base sm:text-xl border-2 w-full sm:w-60 placeholder:text-sm sm:placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            placeholder="電話番号を入力" 
+                            value={phoneNumber}
+                            onChange={(e) => {
+                                // 数値のみを受け付ける
+                                const value = e.target.value.replace(/[^0-9]/g, '');
+                                setPhoneNumber(value);
+                            }}
+                        />
+                    </div>
+                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 mb-7 px-4 sm:px-0 w-full justify-center'>
+                        <p className='text-xl sm:text-2xl whitespace-nowrap'>招待リンク　</p>
+                        <div className='flex-1 min-w-0 flex justify-center'>
+                            <p className='text-base sm:text-2xl text-gray-400 break-all text-center'>{groupUrl || "リンクがありません"}</p>
+                        </div>
                         {groupUrl && (
                             <button
                                 onClick={handleCopyLink}
-                                className="px-4 py-2 text-sm rounded-full transition hover:opacity-80"
+                                className="px-4 py-2 text-sm rounded-full transition hover:opacity-80 whitespace-nowrap"
                                 style={{
                                     backgroundColor: '#fcdf98',
                                     color: '#444',
@@ -187,20 +203,6 @@ export default function DiaryPage() {
                                 コピー
                             </button>
                         )}
-                    </div>
-                    <div className='flex items-center gap-3 mt-7 mb-7'>
-                        <p className='text-2xl'>わたしの電話番号</p>
-                        <input 
-                            type="tel" 
-                            className='text-xl border-2 w-60 placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
-                            placeholder="電話番号を入力" 
-                            value={phoneNumber}
-                            onChange={(e) => {
-                                // 数値のみを受け付ける
-                                const value = e.target.value.replace(/[^0-9]/g, '');
-                                setPhoneNumber(value);
-                            }}
-                        />
                     </div>
                     <button
                         onClick={handleSave}
