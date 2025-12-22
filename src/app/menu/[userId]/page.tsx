@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { db } from '@/lib/firebase';
 import { collection, query, orderBy, getDocs, doc, getDoc } from 'firebase/firestore';
 import { firestoreUtils } from '@/lib/firebaseUtils';
+import { signOut } from '@/lib/auth';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -196,10 +197,19 @@ export default function MenuUserPage() {
     }
   }, [showToast]);
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      router.push('/login');
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   if (loading || !user) {
     return (
       <div>
-        <Header title="日記確認" />
+        <Header title="日記確認" showLogout={true} onLogout={handleSignOut} />
         <main className="diary-card" style={{ padding: '10px' }}>
         </main>
         <Footer />
@@ -294,7 +304,7 @@ export default function MenuUserPage() {
         </div>
       )}
 
-      <Header title={`${targetUserName}の日記`} />
+      <Header title={`${targetUserName}の日記`} showLogout={true} onLogout={handleSignOut} />
 
       <main className="diary-card" style={{ padding: '10px' }}>
         {dataLoading && (
