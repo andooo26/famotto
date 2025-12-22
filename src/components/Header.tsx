@@ -11,7 +11,8 @@ interface HeaderProps {
 export default function Header({ title, showLogout = false, onLogout }: HeaderProps) {
   return (
     <header className="header" style={{ position: 'relative' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {/* PC版: 左にFamotto、中央にタイトル、右にログアウト */}
+      <div className="header-pc" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <Link href="/">
           <span style={{ 
             fontSize: '32px', 
@@ -23,7 +24,7 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
         </Link>
       </div>
       {title && (
-        <div style={{ 
+        <div className="header-title-pc" style={{ 
           position: 'absolute', 
           left: '50%', 
           transform: 'translateX(-50%)',
@@ -35,6 +36,7 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
       )}
       {showLogout && onLogout ? (
         <button
+          className="header-logout-pc"
           onClick={onLogout}
           style={{
             background: 'none',
@@ -49,8 +51,34 @@ export default function Header({ title, showLogout = false, onLogout }: HeaderPr
           ログアウト
         </button>
       ) : (
-        <div style={{ width: '100px' }}></div>
+        <div className="header-spacer-pc" style={{ width: '100px' }}></div>
       )}
+      
+      {/* スマホ版: 中央にFamotto、右にタイトル */}
+      <div className="header-mobile" style={{ display: 'none', position: 'relative', width: '100%', alignItems: 'center' }}>
+        <div style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
+          <Link href="/">
+            <span style={{ 
+              fontSize: '28px', 
+              color: '#fcdf98',
+              fontWeight: 600,
+              letterSpacing: '-0.02em',
+              fontFamily: 'inherit'
+            }}>Famotto</span>
+          </Link>
+        </div>
+        {title && (
+          <div style={{ 
+            position: 'absolute',
+            right: '16px',
+            fontSize: '14px',
+            color: '#666',
+            fontWeight: 500
+          }}>
+            {title}
+          </div>
+        )}
+      </div>
     </header>
   );
 }
