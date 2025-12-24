@@ -17,7 +17,7 @@ export default function Footer() {
   const linkStyle = (path: string) => ({
     textDecoration: 'none',
     color: isActive(path) ? '#fcdf98' : '#000',
-    fontSize: '16px',
+    fontSize: '13px',
     fontWeight: 600,
     letterSpacing: '-0.02em',
     fontFamily: 'inherit',
@@ -32,7 +32,7 @@ export default function Footer() {
   const diaryLinkStyle = {
     textDecoration: 'none',
     color: isActive('/diary') ? '#000' : '#666',
-    fontSize: '16px',
+    fontSize: '13px',
     fontWeight: 600,
     letterSpacing: '-0.02em',
     fontFamily: 'inherit',
@@ -51,23 +51,23 @@ export default function Footer() {
     <footer className="footer">
       <Link href="/" style={{...linkStyle('/'), marginTop: '-16px'}}>
         <Image src="/home.png" alt="" width={90} height={90} />
-        <span style={{ marginTop: '5px' }}>ホーム</span>
+        <span style={{ marginTop: '5px', whiteSpace: 'nowrap' }}>ホーム</span>
       </Link>
       <Link href="/theme" style={linkStyle('/theme')}>
         <Image src="/theme.png" alt="" width={60} height={60} />
-        <span style={{ marginTop: '19px' }}>今日のお題</span>
+        <span style={{ marginTop: '19px', whiteSpace: 'nowrap' }}>今日のお題</span>
       </Link>
       <Link href="/diary" style={diaryLinkStyle}>
         <Image src="/add.png" alt="" width={60} height={60} />
-        <span style={{ marginTop: '19px' }}>日記追加</span>
+        <span style={{ marginTop: '19px', whiteSpace: 'nowrap' }}>日記追加</span>
       </Link>
       <Link href="/menu" style={linkStyle('/menu')}>
         <Image src="/menu.png" alt="" width={60} height={60} />
-        <span style={{ marginTop: '19px' }}>日記確認</span>
+        <span style={{ marginTop: '19px', whiteSpace: 'nowrap' }}>日記確認</span>
       </Link>
       <Link href="/option" style={linkStyle('/option')}>
         <Image src="/option.png" alt="" width={60} height={60} />
-        <span style={{ marginTop: '19px' }}>設定</span>
+        <span style={{ marginTop: '19px', whiteSpace: 'nowrap' }}>設定</span>
       </Link>
     </footer>
   );

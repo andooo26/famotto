@@ -196,7 +196,7 @@ body {
 /* PC版ヘッダー */
 @media (min-width: 769px) {
   .header {
-    padding: 32px 16px; /* PC版は大きめに */
+    padding: 20px 16px; /* PC版の高さを小さく */
   }
   
   .header-mobile {
@@ -212,16 +212,21 @@ body {
   
   /* PC版のコンテンツ上部余白 */
   .diary-card {
-    padding-top: 120px !important; /* PC版は大きめに */
-    padding-bottom: 180px !important; /* フッターが重ならないように（PC版） */
+    padding-top: 100px !important; /* ヘッダーの高さに合わせて調整 */
+    padding-bottom: 160px !important; /* フッターが重ならないように（PC版） */
   }
   
   .content {
-    padding-top: 140px !important; /* PC版は大きめに */
+    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
   }
   
   .main-content {
-    padding-top: 140px !important; /* PC版は大きめに */
+    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
+  }
+  
+  /* PC版フッターの高さを小さく */
+  .footer {
+    padding: 6px 0;
   }
 }
 
@@ -331,10 +336,18 @@ body {
 .footer a {
   text-decoration: none;
   color: #000;
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
+}
+
+.footer a span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .footer a:hover {
