@@ -17,6 +17,9 @@ body {
   min-height: 100%;
   height: 100%;
   overflow-x: hidden;
+  overflow-y: hidden; /* ページ全体の縦スクロールを無効化 */
+  position: fixed; /* 固定してスクロールを制御 */
+  width: 100%;
 }
 
 /* ページコンテナ */
@@ -186,6 +189,7 @@ body {
   .diary-card {
     padding-top: 100px !important; /* スマホでは少し小さめに */
     padding-bottom: 140px !important; /* フッターが重ならないように（スマホ版） */
+    max-height: calc(100vh - 180px) !important; /* スマホ版の高さ制限 */
   }
   
   .content {
@@ -196,7 +200,7 @@ body {
 /* PC版ヘッダー */
 @media (min-width: 769px) {
   .header {
-    padding: 20px 16px; /* PC版の高さを小さく */
+    padding: 14px 16px; /* PC版の高さをさらに小さく */
   }
   
   .header-mobile {
@@ -212,21 +216,33 @@ body {
   
   /* PC版のコンテンツ上部余白 */
   .diary-card {
-    padding-top: 100px !important; /* ヘッダーの高さに合わせて調整 */
+    padding-top: 90px !important; /* ヘッダーの高さに合わせて調整 */
     padding-bottom: 160px !important; /* フッターが重ならないように（PC版） */
+    max-height: calc(100vh - 200px) !important; /* PC版の高さ制限 */
   }
   
   .content {
-    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
+    padding-top: 100px !important; /* ヘッダーの高さに合わせて調整 */
   }
   
   .main-content {
-    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
+    padding-top: 100px !important; /* ヘッダーの高さに合わせて調整 */
   }
   
   /* PC版フッターの高さを小さく */
   .footer {
-    padding: 6px 0;
+    padding: 10px 0;
+  }
+  
+  /* PC版フッターの画像サイズを小さく */
+  .footer img {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .footer a:first-child img {
+    width: 70px !important;
+    height: 70px !important;
   }
 }
 
@@ -265,6 +281,9 @@ body {
  padding: 16px;
  padding-top: 120px; /* 固定ヘッダーの下に表示されるように */
  padding-bottom: 160px; /* フッターが重ならないように（PC版） */
+ max-height: calc(100vh - 200px); /* ビューポートの高さを超えないように */
+ overflow-y: auto; /* 縦スクロールを有効化 */
+ overflow-x: hidden; /* 横スクロールを無効化 */
 }
 
 /* 日記カード本体 (.diary-cardの子要素のdivに適用される) */
