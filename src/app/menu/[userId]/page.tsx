@@ -317,18 +317,24 @@ export default function MenuUserPage() {
           <p style={{ textAlign: 'center' }}>投稿がありません</p>
         )}
 
-        {/*日記リストの表示*/}
         {diaries.map((diary) => (
-          <div key={diary.id} style={{ borderBottom: '1px solid #eee', padding: '10px 0' }}>
+
+          <div key={diary.id}>
+
+            {/* 投稿者/アイコン */}
             <div className="card-header" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', marginBottom: '10px' }}>
               <img
                 src={diary.userIconUrl}
                 alt={diary.userName}
-                style={{ width: 32, height: 32, marginRight: 8, borderRadius: '50%', order: 1, objectFit: 'cover' }}
+                className="icon"
+                style={{ width: '32px', height: '32px', marginRight: '8px', borderRadius: '50%', order: 1, objectFit: 'cover' }}
               />
-              <span style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>{diary.userName}</span>
+              <span className="username" style={{ fontWeight: 'bold', color: '#fcdf98', fontSize: '1.3em', order: 2 }}>
+                {diary.userName}
+              </span>
             </div>
 
+            {/* タイトル/本文/メディア*/}
             <div className="card-content">
               <h3 style={{ fontSize: '1.1em', margin: '5px 0' }}>{diary.title}</h3>
               <p>{diary.content}</p>
@@ -340,18 +346,11 @@ export default function MenuUserPage() {
               )}
             </div>
 
-            <div className="card-footer" style={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              marginTop: '10px',
-              borderTop: '1px solid #eee',
-              paddingTop: '10px'
-            }}>
+            {/* 日時/アクションボタン */}
+            <div className="card-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '10px' }}>
               <p style={{ fontSize: '0.8em', color: '#657786' }}>
                 投稿日時: {diary.timestamp.toDate().toLocaleString()}
               </p>
-
               <div>
                 {user && diary.uid === user.uid && (
                   <button 
@@ -369,16 +368,11 @@ export default function MenuUserPage() {
                   </button>
                 )}
                 {user && diary.uid !== user.uid && diary.userPhoneNumber ? (
-                  <a href={`tel:${diary.userPhoneNumber}`} style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
+                  <a href={`tel:${diary.userPhoneNumber}`} className="btn-icon" style={{ textDecoration: 'none', fontSize: '1.2em', marginRight: '10px' }}>📞</a>
                 ) : user && diary.uid !== user.uid && !diary.userPhoneNumber ? (
-                  <span style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
+                  <span className="btn-icon" style={{ fontSize: '1.2em', marginRight: '10px', opacity: 0.3, cursor: 'not-allowed' }}>📞</span>
                 ) : null}
-                <button
-                  onClick={() => handleShare(diary.uid)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}
-                >
-                  🔗
-                </button>
+                <button onClick={() => handleShare(diary.uid)} className="btn-icon" style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2em' }}>🔗</button>
               </div>
             </div>
           </div>
