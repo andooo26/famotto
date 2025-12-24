@@ -158,7 +158,7 @@ export default function DiaryPage() {
             )}
 
             <main className="main-content" style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', minHeight: 'calc(100vh - 200px)', padding: '10px', paddingBottom: '120px' }}>
-                <div className="flex flex-col items-center m-2 sm:m-10 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
+                <div className="flex flex-col items-center m-2 bg-white rounded-xl shadow-2xl" style={{ width: '100%', maxWidth: '800px' }}>
                     <div className='flex justify-center mt-7'>
                         <div className="relative w-32 h-32">
                             <div className="rounded-full bg-gray-200 w-full h-full flex items-center justify-center overflow-hidden">
@@ -181,21 +181,21 @@ export default function DiaryPage() {
                             </form>
                         </div>
                     </div>
-                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 px-4 sm:px-0 w-full justify-center'>
-                        <p className='text-xl sm:text-2xl whitespace-nowrap'>ユーザー名</p>
+                    <div className='flex flex-col items-center gap-2 mt-7 px-4 w-full justify-center'>
+                        <p className='text-xl whitespace-nowrap'>ユーザー名</p>
                         <input 
                             type="text" 
-                            className='text-base sm:text-xl border-2 w-full sm:w-60 placeholder:text-sm sm:placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            className='text-base border-2 w-full placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
                             placeholder="新しいユーザー名を入力" 
                             value={userName}
                             onChange={(e) => setUserName(e.target.value)}
                         />
                     </div>
-                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 px-4 sm:px-0 w-full justify-center'>
-                        <p className='text-xl sm:text-2xl whitespace-nowrap'>わたしの電話番号</p>
+                    <div className='flex flex-col items-center gap-2 mt-7 px-4 w-full justify-center'>
+                        <p className='text-xl whitespace-nowrap'>わたしの電話番号</p>
                         <input 
                             type="tel" 
-                            className='text-base sm:text-xl border-2 w-full sm:w-60 placeholder:text-sm sm:placeholder:text-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
+                            className='text-base border-2 w-full placeholder:text-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 transition' 
                             placeholder="電話番号を入力" 
                             value={phoneNumber}
                             onChange={(e) => {
@@ -205,10 +205,10 @@ export default function DiaryPage() {
                             }}
                         />
                     </div>
-                    <div className='flex flex-col sm:flex-row items-center gap-2 sm:gap-3 mt-7 mb-7 px-4 sm:px-0 w-full justify-center'>
-                        <p className='text-xl sm:text-2xl whitespace-nowrap'>招待リンク　</p>
+                    <div className='flex flex-col items-center gap-2 mt-7 mb-7 px-4 w-full justify-center'>
+                        <p className='text-xl whitespace-nowrap'>招待リンク　</p>
                         <div className='flex-1 min-w-0 flex justify-center'>
-                            <p className='text-base sm:text-2xl text-gray-400 break-all text-center'>{groupUrl || "リンクがありません"}</p>
+                            <p className='text-base text-gray-400 break-all text-center'>{groupUrl || "リンクがありません"}</p>
                         </div>
                         {groupUrl && (
                             <button

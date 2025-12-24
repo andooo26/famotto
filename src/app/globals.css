@@ -1,23 +1,22 @@
 @import 'tailwindcss';
 
 /* 全体の基本スタイル */
-body {
-  font-family: sans-serif;
+html {
   margin: 0;
   padding: 0;
-  /* background-color: #f7e5c3ff; */
-  text-align: center;
+  height: 100%;
+  overflow-x: hidden;
 }
 
-/* -----------------------------------
-  Famottoヘッダー
-/* 全体の基本スタイル */
 body {
   font-family: sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f8e8d0;
   text-align: center;
+  min-height: 100%;
+  height: 100%;
+  overflow-x: hidden;
 }
 
 /* ページコンテナ */
@@ -186,6 +185,7 @@ body {
   /* スマホ版のコンテンツ上部余白 */
   .diary-card {
     padding-top: 100px !important; /* スマホでは少し小さめに */
+    padding-bottom: 140px !important; /* フッターが重ならないように（スマホ版） */
   }
   
   .content {
@@ -196,7 +196,7 @@ body {
 /* PC版ヘッダー */
 @media (min-width: 769px) {
   .header {
-    padding: 32px 16px; /* PC版は大きめに */
+    padding: 20px 16px; /* PC版の高さを小さく */
   }
   
   .header-mobile {
@@ -212,15 +212,21 @@ body {
   
   /* PC版のコンテンツ上部余白 */
   .diary-card {
-    padding-top: 120px !important; /* PC版は大きめに */
+    padding-top: 100px !important; /* ヘッダーの高さに合わせて調整 */
+    padding-bottom: 160px !important; /* フッターが重ならないように（PC版） */
   }
   
   .content {
-    padding-top: 140px !important; /* PC版は大きめに */
+    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
   }
   
   .main-content {
-    padding-top: 140px !important; /* PC版は大きめに */
+    padding-top: 120px !important; /* ヘッダーの高さに合わせて調整 */
+  }
+  
+  /* PC版フッターの高さを小さく */
+  .footer {
+    padding: 6px 0;
   }
 }
 
@@ -258,7 +264,7 @@ body {
  gap: 16px;
  padding: 16px;
  padding-top: 120px; /* 固定ヘッダーの下に表示されるように */
- padding-bottom: 100px; /* フッターが重ならないように */
+ padding-bottom: 160px; /* フッターが重ならないように（PC版） */
 }
 
 /* 日記カード本体 (.diary-cardの子要素のdivに適用される) */
@@ -312,7 +318,10 @@ body {
 .footer {
   position: fixed;
   bottom: 0;
+  left: 0;
+  right: 0;
   width: 100%;
+  margin: 0;
   display: flex;
   justify-content: space-evenly;
   align-items: center;
@@ -320,16 +329,25 @@ body {
   /* border-top: 1px solid #ccc; */
   padding: 10px 0;
   box-shadow: 0 -1px 4px rgba(0, 0, 0, 0.1);
+  z-index: 999;
 }
 
 /* フッター内リンク */
 .footer a {
   text-decoration: none;
   color: #000;
-  font-size: 14px;
+  font-size: 13px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  min-width: 0;
+}
+
+.footer a span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 .footer a:hover {
