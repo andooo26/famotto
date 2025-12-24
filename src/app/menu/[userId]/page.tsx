@@ -210,7 +210,7 @@ export default function MenuUserPage() {
     return (
       <div>
         <Header title="日記確認" showLogout={true} onLogout={handleSignOut} />
-        <main className="diary-card" style={{ padding: '10px' }}>
+        <main className="diary-card">
         </main>
         <Footer />
       </div>
@@ -308,7 +308,7 @@ export default function MenuUserPage() {
 
       <Header title={`${targetUserName}の日記`} showLogout={true} onLogout={handleSignOut} />
 
-      <main className="diary-card" style={{ padding: '10px' }}>
+      <main className="diary-card">
         {dataLoading && (
           <p style={{ textAlign: 'center' }}>読み込み中...</p>
         )}

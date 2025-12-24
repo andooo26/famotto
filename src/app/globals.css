@@ -186,6 +186,7 @@ body {
   /* スマホ版のコンテンツ上部余白 */
   .diary-card {
     padding-top: 100px !important; /* スマホでは少し小さめに */
+    padding-bottom: 140px !important; /* フッターが重ならないように（スマホ版） */
   }
   
   .content {
@@ -213,6 +214,7 @@ body {
   /* PC版のコンテンツ上部余白 */
   .diary-card {
     padding-top: 120px !important; /* PC版は大きめに */
+    padding-bottom: 180px !important; /* フッターが重ならないように（PC版） */
   }
   
   .content {
@@ -258,7 +260,7 @@ body {
  gap: 16px;
  padding: 16px;
  padding-top: 120px; /* 固定ヘッダーの下に表示されるように */
- padding-bottom: 100px; /* フッターが重ならないように */
+ padding-bottom: 160px; /* フッターが重ならないように（PC版） */
 }
 
 /* 日記カード本体 (.diary-cardの子要素のdivに適用される) */
